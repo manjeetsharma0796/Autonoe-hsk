@@ -34,14 +34,14 @@ export function Balances() {
                 <span className="b">W</span> WMNT
               </div>
               <div className="n">{fmt(b.wmnt, 18, 4)}</div>
-              <div className="subv">wrapped MNT</div>
+              <div className="subv">wrapped HSK</div>
             </div>
             <div className="c">
               <div className="sy">
-                <span className="b">M</span> MNT
+                <span className="b">H</span> HSK
               </div>
               <div className="n">{fmt(b.mnt, 18, 4)}</div>
-              <div className="subv">gas</div>
+              <div className="subv">native gas</div>
             </div>
           </div>
         ) : (

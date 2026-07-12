@@ -21,7 +21,7 @@ export const PAIRS: Pair[] = [
   {
     sym: "WMNT",
     badge: "W",
-    sub: "Wrapped Mantle",
+    sub: "Wrapped HSK",
     bybitSymbol: "MNTUSDT",
     px: "1.2843",
     pxNum: 1.2843,

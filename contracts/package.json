@@ -2,12 +2,12 @@
   "name": "@autonoe/contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "Autonoe on-chain layer: mUSD, WMNT, UniswapV2-style AMM, PriceOracle + SyntheticExchange (hybrid), DecisionLog",
+  "description": "Autonoe on-chain layer: mUSD, WHSK, UniswapV2-style AMM, PriceOracle + SyntheticExchange (hybrid), DecisionLog",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
     "typecheck": "tsc --noEmit",
-    "deploy:mantle": "hardhat run scripts/deploy.ts --network mantleSepolia"
+    "deploy:hashkey": "hardhat run scripts/deploy.ts --network hashkeyTestnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

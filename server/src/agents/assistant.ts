@@ -10,7 +10,7 @@ import { defaultResolver, type ModelResolver } from '../models.ts';
 import { getTickerBySymbol } from '../market/bybit.ts';
 
 const SYSTEM = [
-  'You are Autonoe, a crypto trading copilot on the Mantle testnet',
+  'You are Autonoe, a crypto trading copilot on HashKey Chain',
   '(assets traded vs the mUSD stablecoin: WMNT, BTC, ETH, SUI, SOL).',
   '',
   'Format every answer as a clear, scannable briefing in Markdown:',

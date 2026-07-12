@@ -81,7 +81,7 @@ export function SwapBox({ pair }: { pair: Pair }) {
   const isSynthetic = SYNTHETIC.includes(pair.sym);
   const executable = isWmnt || isSynthetic;
   const routeLabel = isWmnt
-    ? "Mantle AMM"
+    ? "HashKey AMM"
     : isSynthetic
       ? "SyntheticExchange"
       : "advice-only";
@@ -214,8 +214,8 @@ export function SwapBox({ pair }: { pair: Pair }) {
             {executable ? (
               <>
                 {isWmnt
-                  ? "Real mUSD → WMNT swap on the Mantle AMM."
-                  : "Opens an oracle-priced synthetic position on Mantle."}{" "}
+                  ? "Real mUSD → WMNT swap on the HashKey AMM."
+                  : "Opens an oracle-priced synthetic position on HashKey Chain."}{" "}
                 The agent wallet reverts if you receive less than the minimum.
                 Testnet only - not financial advice.
               </>
@@ -241,7 +241,7 @@ export function SwapBox({ pair }: { pair: Pair }) {
                 ? "Create an agent wallet to execute"
                 : fromNum <= 0
                   ? "Enter an amount"
-                  : "Execute on Mantle Sepolia"
+                  : "Execute on HashKey Chain"
             }
             onClick={() => setModalOpen(true)}
           >

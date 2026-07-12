@@ -16,7 +16,7 @@ const STEPS = [
   },
   {
     h: "Execute on-chain",
-    p: "Your autonomous agent wallet signs a real swap on Mantle - within your limits - and logs the decision forever.",
+    p: "Your autonomous agent wallet signs a real swap on HashKey Chain - within your limits - and logs the decision forever.",
     line: false,
   },
 ] as const;

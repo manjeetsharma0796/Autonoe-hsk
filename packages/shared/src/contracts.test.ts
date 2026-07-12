@@ -15,8 +15,8 @@ test('settlement asset list is WMNT + the synthetic markets', () => {
   expect([...ASSET_SYMBOLS]).toEqual(['WMNT', 'BTC', 'ETH', 'SUI', 'SOL']);
 });
 
-test('API route map exposes all 10 endpoints', () => {
-  expect(Object.keys(API)).toHaveLength(10);
+test('API route map exposes all endpoints', () => {
+  expect(Object.keys(API)).toHaveLength(12);
   expect(API.thesisHuman).toBe('/api/thesis/human');
   expect(API.leaderboard).toBe('/api/leaderboard');
 });

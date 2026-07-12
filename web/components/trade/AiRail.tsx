@@ -76,7 +76,7 @@ function retRange(lo: number, hi: number): string {
 
 function ThesisPane() {
   const [intent, setIntent] = useState(
-    "I think WMNT runs into the Mantle upgrade. Build a 4h swing thesis against mUSD.",
+    "I think WMNT runs into the HashKey ecosystem momentum. Build a 4h swing thesis against mUSD.",
   );
   const [thesis, setThesis] = useState<Thesis | null>(null);
   const [thinking, setThinking] = useState("");

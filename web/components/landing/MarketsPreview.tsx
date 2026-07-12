@@ -10,7 +10,7 @@ const STATIC_MARKETS = [
   {
     badge: "W",
     name: "WMNT",
-    desc: "Wrapped Mantle",
+    desc: "Wrapped HSK",
     price: "-",
     change: "-",
     dir: "up" as const,
@@ -40,7 +40,7 @@ const BADGES: Record<string, string> = { BTC: "₿", ETH: "Ξ", WMNT: "W" };
 const DESCS: Record<string, string> = {
   BTC: "Bitcoin",
   ETH: "Ether",
-  WMNT: "Wrapped Mantle",
+  WMNT: "Wrapped HSK",
   SOL: "Solana",
   SUI: "Sui",
 };

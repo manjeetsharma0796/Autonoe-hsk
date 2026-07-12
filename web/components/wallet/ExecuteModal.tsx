@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import type { ExecuteResult } from '@autonoe/wallet';
+import { txUrl } from '@autonoe/chain';
 
 export interface ExecuteModalOption {
   id: string;
@@ -70,8 +71,6 @@ export function ExecuteModal({ option, onConfirm, onClose, isUnlocked }: Props) 
       </span>
     </div>
   );
-
-  const explorerBase = 'https://sepolia.mantlescan.xyz/tx/';
 
   return (
     <>
@@ -201,7 +200,7 @@ export function ExecuteModal({ option, onConfirm, onClose, isUnlocked }: Props) 
               Submitting trade…
             </div>
             <div style={{ fontFamily: 'var(--body)', fontSize: 14, color: 'var(--muted)' }}>
-              Signing and broadcasting to Mantle Sepolia. Do not close this window.
+              Signing and broadcasting to HashKey Chain. Do not close this window.
             </div>
           </div>
         )}
@@ -252,7 +251,7 @@ export function ExecuteModal({ option, onConfirm, onClose, isUnlocked }: Props) 
                 Trade tx
               </div>
               <a
-                href={`${explorerBase}${result.txHash}`}
+                href={txUrl(result.txHash)}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--gold2)', wordBreak: 'break-all' }}
@@ -270,7 +269,7 @@ export function ExecuteModal({ option, onConfirm, onClose, isUnlocked }: Props) 
                   Decision log
                 </div>
                 <a
-                  href={`${explorerBase}${result.decision.txHash}`}
+                  href={txUrl(result.decision.txHash)}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--violet2)', wordBreak: 'break-all' }}

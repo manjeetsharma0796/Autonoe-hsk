@@ -36,6 +36,7 @@ export {
 } from './execute.js';
 
 export {
+  HSK_FAUCET_URL,
   MNT_FAUCET_URL,
   getAgentBalances,
   fundMUSD,

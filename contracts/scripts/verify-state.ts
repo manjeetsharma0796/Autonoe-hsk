@@ -17,7 +17,7 @@ async function main() {
   const musdReserve = musdIsT0 ? r0 : r1;
   const wmntReserve = musdIsT0 ? r1 : r0;
 
-  console.log(`pool mUSD/WMNT  : ${ethers.formatUnits(musdReserve, 6)} mUSD  /  ${ethers.formatEther(wmntReserve)} WMNT`);
+  console.log(`pool mUSD/WHSK  : ${ethers.formatUnits(musdReserve, 6)} mUSD  /  ${ethers.formatEther(wmntReserve)} WHSK`);
   console.log(`house reserve   : ${ethers.formatUnits(reserve, 6)} mUSD`);
   console.log(`oracle signer   : ${signer}`);
   for (const m of addrs.syntheticMarkets) {
@@ -25,7 +25,7 @@ async function main() {
   }
 
   const bal = await ethers.provider.getBalance((await ethers.getSigners())[0].address);
-  console.log(`deployer balance: ${ethers.formatEther(bal)} MNT (after deploy)`);
+  console.log(`deployer balance: ${ethers.formatEther(bal)} HSK (after deploy)`);
 }
 
 main().catch((e) => {

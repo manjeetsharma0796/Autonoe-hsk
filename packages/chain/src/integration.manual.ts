@@ -1,5 +1,5 @@
 /**
- * Manual integration check (T-108) against LIVE Mantle Sepolia.
+ * Manual integration check against LIVE HashKey Chain.
  * Runs a real mUSD/WMNT swap + a synthetic BTC open/close using the deployer key
  * (which is the oracle's trusted signer). Not a unit test — needs a funded key:
  *

@@ -79,7 +79,7 @@ export function Benchmark() {
         <div className={s.reveal}>
           <span className="tag">On-chain proof</span>
           <h2 className={`h2 ${s.bandH2}`}>
-            Every decision, benchmarked on Mantle.
+            Every decision, benchmarked on HashKey Chain.
           </h2>
           <p className="sub">
             Not a leaderboard of vibes. Each thesis, verdict and outcome is

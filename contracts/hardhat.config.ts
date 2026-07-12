@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: "../.env" });
 dotenv.config({ path: "../.env.local", override: true });
 
-const RPC = process.env.MANTLE_SEPOLIA_RPC || "https://rpc.sepolia.mantle.xyz";
+const RPC = process.env.HASHKEY_TESTNET_RPC || "https://testnet.hsk.xyz";
 // Accept keys with or without the 0x prefix.
 const norm = (k?: string) => (k ? (k.startsWith("0x") ? k : `0x${k}`) : undefined);
 const DEPLOYER = norm(process.env.DEPLOYER_PRIVATE_KEY);
@@ -16,26 +16,35 @@ const config: HardhatUserConfig = {
     version: "0.8.24",
     settings: {
       optimizer: { enabled: true, runs: 200 },
-      // IR pipeline avoids "stack too deep" in the Router's addLiquidity.
       viaIR: true,
-      // Mantle is an L2 — pin to paris (no PUSH0/cancun opcodes) for deploy safety.
       evmVersion: "paris",
     },
   },
   networks: {
-    // Local in-process network for tests.
     hardhat: {},
-    // Mantle Sepolia (chain 5003) — PRD §9. Accounts only present if a key is set.
-    mantleSepolia: {
+    hashkeyTestnet: {
       url: RPC,
-      chainId: 5003,
+      chainId: 133,
       accounts: DEPLOYER ? [DEPLOYER] : [],
     },
   },
-  // Keyless source verification via Sourcify. (Mantlescan's Etherscan-style
-  // verify now needs a paid V2 API key; Sourcify covers chain 5003 for free.)
   sourcify: {
     enabled: true,
+  },
+  etherscan: {
+    apiKey: {
+      hashkeyTestnet: "placeholder",
+    },
+    customChains: [
+      {
+        network: "hashkeyTestnet",
+        chainId: 133,
+        urls: {
+          apiURL: "https://testnet-explorer.hsk.xyz/api",
+          browserURL: "https://testnet-explorer.hsk.xyz",
+        },
+      },
+    ],
   },
 };
 

@@ -68,7 +68,7 @@ export function Hero() {
     <section ref={root} className={`${s.hero} wrap`}>
       <div>
         <span className="eyebrow">
-          <span className="ping" /> Live on Mantle Sepolia · Turing Test 2026
+          <span className="ping" /> Live on HashKey Chain · Turing Test 2026
         </span>
       </div>
 

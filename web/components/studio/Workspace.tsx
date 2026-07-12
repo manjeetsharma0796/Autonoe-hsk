@@ -80,7 +80,7 @@ export function Workspace() {
       <section className={`${styles.pagehead} wrap`}>
         <div className="reveal">
           <span className="eyebrow">
-            <span className="ping" /> AI Workspace · Mantle Sepolia
+            <span className="ping" /> AI Workspace · HashKey Chain
           </span>
           <h1 className="h2">Studio - write it, then put it on trial.</h1>
           <p className="sub">
@@ -136,7 +136,7 @@ export function Workspace() {
           <span className="dot" /> AUTONOE
         </div>
         <div>
-          Built for the Mantle Turing Test 2026 · testnet · not financial advice
+          Built for the HashKey Horizon Hackathon · not financial advice
         </div>
       </footer>
     </main>

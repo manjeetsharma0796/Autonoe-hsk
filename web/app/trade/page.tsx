@@ -20,7 +20,7 @@ function tokenToPair(t: TokenInfo): Pair {
   const SUBS: Record<string, string> = {
     BTC: "Bitcoin",
     ETH: "Ether",
-    WMNT: "Wrapped Mantle",
+    WMNT: "Wrapped HSK",
     SOL: "Solana",
     SUI: "Sui",
   };
@@ -127,7 +127,7 @@ function TradeInner() {
             ) : (
               <span className="ping" style={{ background: "#3FE0A6" }} />
             )}{" "}
-            Mantle Sepolia · testnet
+            HashKey Chain
           </span>
         </div>
 
@@ -152,7 +152,7 @@ function TradeInner() {
             <span className="dot" /> AUTONOE
           </div>
           <div>
-            Built for the Mantle Turing Test 2026 · testnet · not financial advice
+            Built for the HashKey Horizon Hackathon · not financial advice
           </div>
         </footer>
       </div>

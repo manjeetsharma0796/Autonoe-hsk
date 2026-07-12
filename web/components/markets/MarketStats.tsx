@@ -162,7 +162,7 @@ export function MarketStats({ tokens }: MarketStatsProps) {
               On-chain pairs
             </div>
             <div className="n">{tokens.filter((t) => t.onchain).length || "-"}</div>
-            <div className="d">AMM execution via Mantle</div>
+            <div className="d">AMM execution via HashKey Chain</div>
           </div>
 
           <div className={`${styles.scell} ${styles.mover}`}>

@@ -7,8 +7,7 @@ import { PnlChart } from "@/components/benchmark/PnlChart";
 import { BenchmarkStats } from "@/components/benchmark/BenchmarkStats";
 import { Leaderboard } from "@/components/benchmark/Leaderboard";
 import { VerifyBadge } from "@/components/benchmark/VerifyBadge";
-
-const MANTLESCAN_BASE = "https://sepolia.mantlescan.xyz/tx";
+import { txUrl } from "@autonoe/chain";
 
 function formatDate(iso: string): string {
   try {
@@ -156,7 +155,7 @@ function HistoryTable({ records }: { records: HistoryRecord[] }) {
               <td style={{ padding: "12px" }}>
                 {rec.txHash ? (
                   <a
-                    href={`${MANTLESCAN_BASE}/${rec.txHash}`}
+                    href={txUrl(rec.txHash)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -223,7 +222,7 @@ export default function HistoryPage() {
       <h1 className="h2">History</h1>
       <p className="sub">
         On-chain DecisionLog records - every thesis judged, executed, and
-        settled on Mantle Sepolia.
+        settled on HashKey Chain.
       </p>
 
       {/* ── Loading / error state for history ─────────────────────── */}
@@ -355,7 +354,7 @@ export default function HistoryPage() {
                   flexShrink: 0,
                 }}
               />
-              DecisionLog · Mantle Sepolia · {records.length} record
+              DecisionLog · HashKey Chain · {records.length} record
               {records.length !== 1 ? "s" : ""}
             </div>
           </div>

@@ -250,7 +250,7 @@ export function buildShareSvg(data: ShareCardData): string {
 
   <!-- Left: network tag -->
   <text x="64" y="${H - 28}" font-family="'Courier New', Courier, monospace" font-size="10.5" letter-spacing="0.18em"
-        fill="${C.faint}">MANTLE SEPOLIA · TESTNET · NOT FINANCIAL ADVICE</text>
+        fill="${C.faint}">HASHKEY CHAIN · NOT FINANCIAL ADVICE</text>
 
   <!-- Right: autonoe.xyz placeholder -->
   <text x="${W - 64}" y="${H - 28}" font-family="'Courier New', Courier, monospace" font-size="10.5"
@@ -328,7 +328,7 @@ export function buildTextSummary(data: ShareCardData): string {
 
   text +=
     `${"─".repeat(48)}\n` +
-    `Mantle Sepolia · Testnet · Not financial advice`;
+    `HashKey Chain · Not financial advice`;
 
   return text;
 }

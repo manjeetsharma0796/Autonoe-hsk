@@ -3,17 +3,17 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 
 /**
- * Deploy + seed the full Autonoe on-chain layer (T-106), hybrid engine (PRD §8):
- *   - tokens: mUSD, WMNT
+ * Deploy + seed the full Autonoe on-chain layer:
+ *   - tokens: mUSD, WMNT (Wrapped HSK on-chain)
  *   - real AMM: AmmFactory + AmmRouter, seeded mUSD/WMNT pool
  *   - synthetic leg: PriceOracle (signed-pull) + SyntheticExchange (house reserve)
  *   - benchmark: DecisionLog
- * Then writes live addresses to packages/chain/addresses.json (T-107 also exports ABIs).
+ * Then writes live addresses to packages/chain/addresses.json.
  *
- * Seed sizes are env-overridable so faucet MNT suffices on testnet.
+ * Seed sizes are env-overridable so faucet HSK suffices.
  */
 const SEED_WMNT = ethers.parseEther(process.env.SEED_WMNT || "2");
-const SEED_MUSD = BigInt(process.env.SEED_MUSD_BASEUNITS || (2_000 * 1e6).toString()); // ~1000 mUSD/WMNT
+const SEED_MUSD = BigInt(process.env.SEED_MUSD_BASEUNITS || (2_000 * 1e6).toString());
 const HOUSE_RESERVE = BigInt(process.env.HOUSE_RESERVE_BASEUNITS || (100_000 * 1e6).toString());
 const MARKETS = (process.env.SYNTH_MARKETS || "BTC,ETH,SUI,SOL")
   .split(",")
@@ -27,10 +27,9 @@ async function main() {
   const signerKey = process.env.ORACLE_SIGNER_PRIVATE_KEY;
   const oracleSigner = signerKey ? new ethers.Wallet(signerKey).address : deployer.address;
   if (!signerKey) {
-    console.warn("⚠ ORACLE_SIGNER_PRIVATE_KEY not set — using deployer as oracle signer (dev only).");
+    console.warn("ORACLE_SIGNER_PRIVATE_KEY not set — using deployer as oracle signer (dev only).");
   }
 
-  // ── deploy ────────────────────────────────────────────────────────────────
   const musd = await (await ethers.getContractFactory("MUSD")).deploy();
   const wmnt = await (await ethers.getContractFactory("WMNT")).deploy();
   const factory = await (await ethers.getContractFactory("AmmFactory")).deploy();
@@ -49,7 +48,6 @@ async function main() {
   const wmntAddr = await wmnt.getAddress();
   const routerAddr = await router.getAddress();
 
-  // ── seed the real mUSD/WMNT pool ───────────────────────────────────────────
   await (await musd.ownerMint(deployer.address, SEED_MUSD + HOUSE_RESERVE)).wait();
   await (await wmnt.deposit({ value: SEED_WMNT })).wait();
   await (await musd.approve(routerAddr, SEED_MUSD)).wait();
@@ -60,14 +58,11 @@ async function main() {
   ).wait();
   const pair = await factory.getPair(musdAddr, wmntAddr);
 
-  // ── fund the synthetic house reserve ───────────────────────────────────────
   await (await musd.approve(await exchange.getAddress(), HOUSE_RESERVE)).wait();
   await (await exchange.fundReserve(HOUSE_RESERVE)).wait();
 
-  // ── register synthetic markets ─────────────────────────────────────────────
   for (const m of MARKETS) await (await exchange.registerMarket(m)).wait();
 
-  // ── export addresses ───────────────────────────────────────────────────────
   const out = {
     chainId: Number((await ethers.provider.getNetwork()).chainId),
     mUSD: musdAddr,
@@ -86,7 +81,7 @@ async function main() {
 
   const dest = resolve(__dirname, "../../packages/chain/addresses.json");
   writeFileSync(dest, JSON.stringify(out, null, 2) + "\n");
-  console.log(`\n✔ Wrote ${dest}`);
+  console.log(`\nWrote ${dest}`);
 }
 
 main().catch((err) => {

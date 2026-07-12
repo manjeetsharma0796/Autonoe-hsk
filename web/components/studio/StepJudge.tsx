@@ -1019,7 +1019,7 @@ export function StepJudge({ active, thesis }: StepJudgeProps) {
       <div className={`${styles.notice}`} style={{ marginTop: 30 }}>
         <WarnIcon />
         Testnet · not financial advice. Executing routes to /trade where your agent wallet signs
-        the swap on Mantle - manual confirm.
+        the swap on HashKey Chain - manual confirm.
       </div>
     </section>
   );

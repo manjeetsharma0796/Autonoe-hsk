@@ -28,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Autonoe",
-  description: "Your autonomous mind for on-chain trades.",
+  description: "Verifiable AI trading tribunal on HashKey Chain.",
 };
 
 export const viewport: Viewport = {

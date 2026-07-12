@@ -1,4 +1,4 @@
-// Allowance helpers. Mantle's public RPC is load-balanced, so a read immediately
+// Allowance helpers. HashKey's public RPC is load-balanced, so a read immediately
 // after an approve tx can hit a node that hasn't seen it yet (read-after-write
 // staleness). We approve max-uint (sticky) and poll until the allowance reflects.
 

@@ -5,7 +5,7 @@ import { MarketsShell } from "@/components/markets/MarketsShell";
 export const metadata: Metadata = {
   title: "Autonoe - Markets · trade against mUSD",
   description:
-    "Track price, momentum and depth for every mUSD pair on Mantle Sepolia.",
+    "Track price, momentum and depth for every mUSD pair on HashKey Chain.",
 };
 
 export default function MarketsPage() {
@@ -20,7 +20,7 @@ export default function MarketsPage() {
           <span className="dot" /> AUTONOE
         </div>
         <div>
-          Built for the Mantle Turing Test 2026 · testnet · not financial advice
+          Built for the HashKey Horizon Hackathon · not financial advice
         </div>
       </footer>
     </main>

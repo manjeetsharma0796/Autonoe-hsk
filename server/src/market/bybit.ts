@@ -1,13 +1,13 @@
 // Bybit v5 public market data (no API key needed for spot kline/tickers).
 // Our tradable assets map to Bybit spot symbols; WMNT analyses use MNTUSDT
-// (MNT is what WMNT wraps) while the on-chain AMM remains the execution truth.
+// (proxy feed while WMNT wraps native HSK) while the on-chain AMM remains the execution truth.
 
 import type { AssetSymbol } from '@autonoe/shared';
 
 const BASE = process.env.BYBIT_BASE ?? 'https://api.bybit.com';
 
 export const BYBIT_SYMBOL: Record<AssetSymbol, string> = {
-  WMNT: 'MNTUSDT', // WMNT wraps MNT; analyses use MNTUSDT
+  WMNT: 'MNTUSDT', // WMNT wraps HSK; analyses use MNTUSDT as proxy
   BTC: 'BTCUSDT',
   ETH: 'ETHUSDT',
   SUI: 'SUIUSDT',

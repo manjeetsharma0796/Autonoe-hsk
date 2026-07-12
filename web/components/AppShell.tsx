@@ -7,11 +7,11 @@ import { usePathname } from "next/navigation";
 import { useAccount, useSendTransaction } from "wagmi";
 import { parseEther } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MNT_FAUCET_URL, DEFAULT_POLICY, type SpendingPolicy } from "@autonoe/wallet";
+import { HSK_FAUCET_URL, DEFAULT_POLICY, type SpendingPolicy } from "@autonoe/wallet";
 import { useWallet } from "@/components/wallet/WalletProvider";
 
-/** Amount of native MNT sent to the agent wallet by the "Fund agent" action. */
-const FUND_AGENT_MNT = "0.5";
+/** Amount of native HSK sent to the agent wallet by the "Fund agent" action. */
+const FUND_AGENT_HSK = "0.5";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -66,14 +66,14 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
 
   // External funding wallet (connected via RainbowKit ConnectButton).
   const { isConnected } = useAccount();
-  // Send native MNT from the connected external wallet to the agent wallet.
+  // Send native HSK from the connected external wallet to the agent wallet.
   const { sendTransaction, isPending: fundAgentPending } = useSendTransaction();
 
   function handleFundAgent() {
     if (!wallet.address) return;
     sendTransaction({
       to: wallet.address as `0x${string}`,
-      value: parseEther(FUND_AGENT_MNT),
+      value: parseEther(FUND_AGENT_HSK),
     });
   }
 
@@ -154,8 +154,8 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
   }
 
   const mntFaucetUrl = wallet.address
-    ? `${MNT_FAUCET_URL}?address=${wallet.address}`
-    : MNT_FAUCET_URL;
+    ? `${HSK_FAUCET_URL}?address=${wallet.address}`
+    : HSK_FAUCET_URL;
 
   const label = (t: string) => (
     <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: "var(--faint)", marginBottom: 6 }}>
@@ -213,7 +213,7 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
           </p>
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
 
-          {/* Fund agent: send native MNT from the connected wallet → agent address. */}
+          {/* Fund agent: send native HSK from the connected wallet to the agent address. */}
           {isConnected && wallet.address && (
             <div style={{ marginTop: 14 }}>
               <button
@@ -223,10 +223,10 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
                 onClick={handleFundAgent}
                 type="button"
               >
-                {fundAgentPending ? "Sending…" : `Fund agent (${FUND_AGENT_MNT} MNT) →`}
+                {fundAgentPending ? "Sending…" : `Fund agent (${FUND_AGENT_HSK} HSK) →`}
               </button>
               <p style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--faint)", marginTop: 8, lineHeight: 1.5 }}>
-                Sends {FUND_AGENT_MNT} MNT from the connected wallet to the agent address. Confirm in your wallet.
+                Sends {FUND_AGENT_HSK} HSK from the connected wallet to the agent address. Confirm in your wallet.
               </p>
             </div>
           )}
@@ -339,7 +339,7 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
               <div style={{ border: "1px solid var(--line)", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
                 {label("Balances")}
                 {[
-                  { sym: "MNT (gas)", val: formatBalance(wallet.balances.mnt, 18), col: "var(--gold2)" },
+                  { sym: "HSK (gas)", val: formatBalance(wallet.balances.mnt, 18), col: "var(--gold2)" },
                   { sym: "mUSD", val: formatBalance(wallet.balances.mUSD, 6), col: "var(--green)" },
                   { sym: "WMNT", val: formatBalance(wallet.balances.wmnt, 18), col: "var(--violet2)" },
                 ].map((b) => (
@@ -394,9 +394,9 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
               {fundError && <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--red)", marginTop: 6 }}>{fundError}</p>}
             </div>
 
-            {/* MNT gas faucet */}
+            {/* HSK gas faucet */}
             <div style={{ marginBottom: 16 }}>
-              {label("MNT gas faucet")}
+              {label("HSK gas faucet")}
               <a
                 href={mntFaucetUrl}
                 target="_blank"

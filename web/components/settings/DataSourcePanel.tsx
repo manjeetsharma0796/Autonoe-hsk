@@ -23,7 +23,7 @@ export function getActiveSources(): AIRole[] {
 const SOURCE_META: Record<(typeof SUBAGENT_ROLES)[number], { label: string; description: string }> = {
   "subagent.onchain": {
     label: "On-chain",
-    description: "Live DEX / wallet data from Mantle Sepolia",
+    description: "Live DEX / wallet data from HashKey Chain",
   },
   "subagent.market": {
     label: "Market",

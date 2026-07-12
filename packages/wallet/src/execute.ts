@@ -1,5 +1,5 @@
 // Agent-sign + execute (T-304). Given a chosen option, the agent wallet signs
-// and submits a REAL trade on Mantle Sepolia, then records the decision on-chain.
+// and submits a REAL trade on HashKey Chain, then records the decision on-chain.
 // Hybrid routing: WMNT settles via the AMM; every other asset is an oracle-priced
 // synthetic position. Execution is manual-confirm — the UI confirms before calling.
 

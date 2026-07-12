@@ -1,6 +1,6 @@
 import { ethers, network } from "hardhat";
 
-/** Print the configured deployer address + native MNT balance for the target network. */
+/** Print the configured deployer address + native HSK balance for the target network. */
 async function main() {
   const signers = await ethers.getSigners();
   if (signers.length === 0) {
@@ -11,7 +11,7 @@ async function main() {
   const bal = await ethers.provider.getBalance(d.address);
   console.log(`network : ${network.name}`);
   console.log(`deployer: ${d.address}`);
-  console.log(`balance : ${ethers.formatEther(bal)} MNT`);
+  console.log(`balance : ${ethers.formatEther(bal)} HSK`);
 }
 
 main().catch((e) => {

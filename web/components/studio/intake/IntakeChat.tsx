@@ -213,6 +213,7 @@ const ASSET_NAME_MAP: Record<string, AssetSymbol> = {
   sol: "SOL",
   sui: "SUI",
   mantle: "WMNT",
+  hashkey: "WMNT",
   wmnt: "WMNT",
   mnt: "WMNT",
 };

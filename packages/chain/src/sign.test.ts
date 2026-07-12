@@ -23,12 +23,12 @@ test('signed attestation recovers to the signer (matches PriceOracle digest)', a
   const symbol = 'BTC';
   const priceX18 = priceToX18(100_000);
   const timestamp = 1_780_000_000;
-  const att = await signPriceAttestation(account, { symbol, priceX18, timestamp, oracle: ORACLE, chainId: 5003 });
+  const att = await signPriceAttestation(account, { symbol, priceX18, timestamp, oracle: ORACLE, chainId: 133 });
 
   const inner = keccak256(
     encodeAbiParameters(
       [{ type: 'uint256' }, { type: 'address' }, { type: 'string' }, { type: 'uint256' }, { type: 'uint256' }],
-      [5003n, ORACLE, symbol, priceX18, BigInt(timestamp)]
+      [133n, ORACLE, symbol, priceX18, BigInt(timestamp)]
     )
   );
   const recovered = await recoverMessageAddress({ message: { raw: inner }, signature: att.signature });

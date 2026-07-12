@@ -6,16 +6,16 @@ import { injected } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { mantleSepolia } from "@autonoe/chain";
+import { hashkeyTestnet } from "@autonoe/chain";
 import { WalletProvider } from "@/components/wallet/WalletProvider";
 
 // viem's `Chain` type is structurally compatible with the object exported by
 // @autonoe/chain; cast keeps wagmi's stricter typing happy without redefining it.
 const config = createConfig({
-  chains: [mantleSepolia as never],
+  chains: [hashkeyTestnet as never],
   connectors: [injected()],
   transports: {
-    [mantleSepolia.id]: http(),
+    [hashkeyTestnet.id]: http(),
   },
 });
 

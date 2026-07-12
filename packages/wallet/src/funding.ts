@@ -1,6 +1,6 @@
 // Funding helpers (T-305): read agent balances, mint mUSD via the token faucet,
-// and surface the native MNT faucet link. The agent needs a little MNT for gas
-// before it can call the mUSD faucet — see MNT_FAUCET_URL.
+// and surface the native HSK faucet link. The agent needs a little HSK for gas
+// before it can call the mUSD faucet — see HSK_FAUCET_URL.
 
 import { type Hex } from 'viem';
 import { getBalance, readContract, writeContract, waitForTransactionReceipt } from 'viem/actions';
@@ -15,11 +15,13 @@ import {
   txUrl,
 } from '@autonoe/chain';
 
-/** Native MNT faucet (gas) — surfaced in the wallet drawer. */
-export const MNT_FAUCET_URL = FAUCET_URL;
+/** Native HSK faucet (gas) — surfaced in the wallet drawer. */
+export const HSK_FAUCET_URL = FAUCET_URL;
+/** @deprecated Use HSK_FAUCET_URL */
+export const MNT_FAUCET_URL = HSK_FAUCET_URL;
 
 export interface AgentBalances {
-  /** Native MNT (gas), 18dec base units. */
+  /** Native HSK (gas), 18dec base units. */
   mnt: bigint;
   /** mUSD, 6dec base units. */
   mUSD: bigint;

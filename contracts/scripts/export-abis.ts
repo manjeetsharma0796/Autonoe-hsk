@@ -5,7 +5,7 @@ import { resolve } from "path";
 /** Export ABIs other tracks import (T-107) → packages/chain/abis/<Contract>.json */
 const NAMES = [
   "MUSD",
-  "WMNT",
+  "WHSK",
   "AmmFactory",
   "AmmPair",
   "AmmRouter",
