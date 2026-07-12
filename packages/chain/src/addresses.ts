@@ -5,14 +5,14 @@ import raw from '../addresses.json';
 export interface AutonoeAddresses {
   chainId: number;
   mUSD: `0x${string}`;
-  WMNT: `0x${string}`;
+  WHSK: `0x${string}`;
   factory: `0x${string}`;
   router: `0x${string}`;
   decisionLog: `0x${string}`;
   oracle: `0x${string}`;
   syntheticExchange: `0x${string}`;
   oracleSigner?: `0x${string}`;
-  pools: { mUSD_WMNT: `0x${string}` };
+  pools: { mUSD_WHSK: `0x${string}` };
   syntheticMarkets: string[];
 }
 

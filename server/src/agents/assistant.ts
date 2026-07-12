@@ -11,7 +11,7 @@ import { getTickerBySymbol } from '../market/bybit.ts';
 
 const SYSTEM = [
   'You are Autonoe, a crypto trading copilot on HashKey Chain',
-  '(assets traded vs the mUSD stablecoin: WMNT, BTC, ETH, SUI, SOL).',
+  '(assets traded vs the mUSD stablecoin: WHSK, BTC, ETH, SUI, SOL).',
   '',
   'Format every answer as a clear, scannable briefing in Markdown:',
   '- When the answer has more than one point, group it under "## Section" headers',
@@ -25,7 +25,7 @@ const SYSTEM = [
   '- Comparative data: a GitHub-flavored Markdown table.',
   '- A few numbers (returns, risk, momentum): a fenced chart block, for example',
   '  ```chart',
-  '  {"type":"bar","title":"4h momentum","unit":"%","data":[{"label":"WMNT","value":4.2},{"label":"BTC","value":-1.1}]}',
+  '  {"type":"bar","title":"4h momentum","unit":"%","data":[{"label":"WHSK","value":4.2},{"label":"BTC","value":-1.1}]}',
   '  ```',
   '- A correlation or risk matrix: a fenced heatmap block, for example',
   '  ```heatmap',
@@ -35,7 +35,7 @@ const SYSTEM = [
   '',
   'You have a `get_ticker` tool. Use it whenever the user asks about the price,',
   '24h change, or volume of ANY token. Call it with the bare ticker symbol',
-  '(e.g. "BTC", "WMNT", "PEPE") - do not append USDT yourself.',
+  '(e.g. "BTC", "WHSK", "PEPE") - do not append USDT yourself.',
   '',
   'HARD RULE: never output the em dash or en dash character. Use commas, colons,',
   'or a hyphen (-) instead. This is non-negotiable.',
@@ -54,7 +54,7 @@ export const tickerTool = tool(
   },
   {
     name: 'get_ticker',
-    description: 'Fetch live Bybit spot price for any token symbol (e.g. BTC, WMNT, PEPE).',
+    description: 'Fetch live Bybit spot price for any token symbol (e.g. BTC, WHSK, PEPE).',
     schema: z.object({ symbol: z.string().describe('Bare ticker symbol without USDT suffix') }),
   },
 );

@@ -16,11 +16,11 @@ import { formatPrice } from "@/lib/format";
 /** Map a live TokenInfo to the Pair shape used by trade components. */
 function tokenToPair(t: TokenInfo): Pair {
   // Badge: first letter, with special characters for well-known tokens.
-  const BADGES: Record<string, string> = { BTC: "₿", ETH: "Ξ", WMNT: "W" };
+  const BADGES: Record<string, string> = { BTC: "₿", ETH: "Ξ", WHSK: "W" };
   const SUBS: Record<string, string> = {
     BTC: "Bitcoin",
     ETH: "Ether",
-    WMNT: "Wrapped HSK",
+    WHSK: "Wrapped HSK",
     SOL: "Solana",
     SUI: "Sui",
   };
@@ -39,9 +39,9 @@ function tokenToPair(t: TokenInfo): Pair {
   };
 }
 
-/** Parse the `?pair=mUSD-SYM` slug → bare symbol. Defaults to WMNT. */
+/** Parse the `?pair=mUSD-SYM` slug → bare symbol. Defaults to WHSK. */
 function symFromSlug(slug: string | null): string {
-  if (!slug) return "WMNT";
+  if (!slug) return "WHSK";
   const m = slug.match(/^mUSD-(.+)$/i);
   return (m ? m[1] : slug).toUpperCase();
 }

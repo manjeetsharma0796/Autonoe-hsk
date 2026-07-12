@@ -26,10 +26,10 @@ export const DEFAULT_SOURCES: Record<DataSourceKey, boolean> = {
 };
 
 export const DEFAULT_INTENT =
-  "WMNT looks oversold after the testnet incentive cliff - is there a scaled long worth taking against mUSD?";
+  "WHSK looks oversold after the testnet incentive cliff - is there a scaled long worth taking against mUSD?";
 
 export const DEFAULT_HUMAN_CASE =
-  "WMNT has round-tripped to its pre-incentive range while on-chain TVL held flat - sellers look exhausted. I'd scale a long against mUSD, sized small, adding only on a reclaim of the 1.30 level. Invalidation: a daily close back under 1.18.";
+  "WHSK has round-tripped to its pre-incentive range while on-chain TVL held flat - sellers look exhausted. I'd scale a long against mUSD, sized small, adding only on a reclaim of the 1.30 level. Invalidation: a daily close back under 1.18.";
 
 export interface TraceStep {
   label: string;
@@ -40,12 +40,12 @@ export const THESIS_TRACE: TraceStep[] = [
   {
     label: "subagent · on-chain",
     detail:
-      "Net DEX inflow to WMNT positive over 72h; agent-wallet holders flat, not distributing. No abnormal contract approvals on the pair.",
+      "Net DEX inflow to WHSK positive over 72h; agent-wallet holders flat, not distributing. No abnormal contract approvals on the pair.",
   },
   {
     label: "subagent · market",
     detail:
-      "mUSD/WMNT printed a higher low at 1.21 after the -7% incentive-cliff flush; 24h change +4.21%, volume reverting to the 14-day mean.",
+      "mUSD/WHSK printed a higher low at 1.21 after the -7% incentive-cliff flush; 24h change +4.21%, volume reverting to the 14-day mean.",
   },
   {
     label: "subagent · indicators",
@@ -77,7 +77,7 @@ export const THESIS_OPTIONS: ThesisOption[] = [
     risk: "low",
     direction: "long",
     directionLabel: "Long",
-    asset: "WMNT",
+    asset: "WHSK",
     sizeValue: "250 mUSD",
     sizeLabel: "opt-1 · scaled entry",
     rationale:
@@ -89,7 +89,7 @@ export const THESIS_OPTIONS: ThesisOption[] = [
     risk: "medium",
     direction: "long",
     directionLabel: "Long",
-    asset: "WMNT",
+    asset: "WHSK",
     sizeValue: "600 mUSD",
     sizeLabel: "opt-2 · two-tranche",
     rationale:
@@ -101,7 +101,7 @@ export const THESIS_OPTIONS: ThesisOption[] = [
     risk: "high",
     direction: "long",
     directionLabel: "Long",
-    asset: "WMNT",
+    asset: "WHSK",
     sizeValue: "1,200 mUSD",
     sizeLabel: "opt-3 · full size",
     rationale:
@@ -192,7 +192,7 @@ export interface RefinedOption {
 export const REFINED_OPTIONS: RefinedOption[] = [
   {
     id: "ref-1",
-    title: "Long WMNT",
+    title: "Long WHSK",
     sub: "opt-1 · scaled entry",
     risk: "low",
     riskLabel: "Low",
@@ -205,7 +205,7 @@ export const REFINED_OPTIONS: RefinedOption[] = [
   },
   {
     id: "ref-2",
-    title: "Long WMNT",
+    title: "Long WHSK",
     sub: "opt-2 · two-tranche",
     risk: "medium",
     riskLabel: "Medium",
@@ -219,7 +219,7 @@ export const REFINED_OPTIONS: RefinedOption[] = [
   },
   {
     id: "ref-3",
-    title: "Long WMNT",
+    title: "Long WHSK",
     sub: "opt-3 · full size",
     risk: "high",
     riskLabel: "High",

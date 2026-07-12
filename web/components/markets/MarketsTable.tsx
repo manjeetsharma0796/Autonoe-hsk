@@ -33,9 +33,9 @@ function fmtVolume(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
-/** Pick badge class from symbol. Keeps the WMNT/BTC/ETH colours, generic gold for the rest. */
+/** Pick badge class from symbol. Keeps the WHSK/BTC/ETH colours, generic gold for the rest. */
 function badgeClass(symbol: string): string {
-  if (symbol === "WMNT") return "mnt";
+  if (symbol === "WHSK") return "mnt";
   if (symbol === "BTC") return "btc";
   if (symbol === "ETH") return "eth";
   return "";
@@ -45,7 +45,7 @@ function badgeClass(symbol: string): string {
 function glyph(symbol: string): string {
   if (symbol === "BTC") return "₿";
   if (symbol === "ETH") return "Ξ";
-  if (symbol === "WMNT") return "W";
+  if (symbol === "WHSK") return "W";
   return symbol.slice(0, 2);
 }
 
@@ -94,7 +94,7 @@ export function MarketsTable({ onTokensLoaded }: MarketsTableProps) {
   const [searchResults, setSearchResults] = useState<TokenInfo[] | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [favorites, setFavorites] = useState<Set<string>>(
-    () => new Set(["WMNT"]),
+    () => new Set(["WHSK"]),
   );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -311,7 +311,7 @@ export function MarketsTable({ onTokensLoaded }: MarketsTableProps) {
 
       <div className={styles.mfoot}>
         <span className="ping" /> Live prices from Bybit spot ·
-        refreshes every ~15s · on-chain execution for WMNT only
+        refreshes every ~15s · on-chain execution for WHSK only
       </div>
     </div>
   );
@@ -352,7 +352,7 @@ function MarketRow({
   onToggleFavorite: () => void;
 }) {
   const up = token.change24hPct >= 0;
-  const slug = token.symbol === "WMNT" ? "mUSD-WMNT" : `mUSD-${token.symbol}`;
+  const slug = token.symbol === "WHSK" ? "mUSD-WHSK" : `mUSD-${token.symbol}`;
 
   return (
     <Link

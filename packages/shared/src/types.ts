@@ -67,10 +67,10 @@ export interface ReasoningTrace {
 // ── Trading domain ───────────────────────────────────────────────────────────
 
 export type Direction = 'long' | 'short' | 'hedge' | 'hold';
-// 'WMNT' settles via the real AMM; the rest are oracle-priced synthetics (PRD §8).
-export type AssetSymbol = 'WMNT' | 'BTC' | 'ETH' | 'SUI' | 'SOL';
+// 'WHSK' settles via the real AMM; the rest are oracle-priced synthetics (PRD §8).
+export type AssetSymbol = 'WHSK' | 'BTC' | 'ETH' | 'SUI' | 'SOL';
 
-export const ASSET_SYMBOLS: readonly AssetSymbol[] = ['WMNT', 'BTC', 'ETH', 'SUI', 'SOL'] as const;
+export const ASSET_SYMBOLS: readonly AssetSymbol[] = ['WHSK', 'BTC', 'ETH', 'SUI', 'SOL'] as const;
 
 export type RiskLevel = 'low' | 'medium' | 'high';
 
@@ -153,7 +153,7 @@ export interface ChatMessage {
 export interface IntakeFields {
   /** {grow, hedge, scalp, swing} - buy/accumulate/long maps to grow. */
   goal?: string;
-  /** Ticker symbol, uppercase (e.g. SOL, BTC, WMNT). */
+  /** Ticker symbol, uppercase (e.g. SOL, BTC, WHSK). */
   asset?: string;
   /** Position size as the user expressed it (e.g. "10 SOL" or "$500"). */
   capital?: string;
@@ -172,14 +172,14 @@ export interface IntakeFields {
 // ── Market symbols (dynamic, from /api/symbols) ──────────────────────────────
 
 export interface TokenInfo {
-  /** Base symbol, e.g. "BTC". WMNT is the display name for MNT. */
+  /** Base symbol, e.g. "BTC". WHSK is the display name for MNT. */
   symbol: string;
   /** Bybit spot symbol, e.g. "BTCUSDT". */
   bybitSymbol: string;
   price: number;
   change24hPct: number;
   volume24h: number;
-  /** true only for WMNT (on-chain AMM execution available). */
+  /** true only for WHSK (on-chain AMM execution available). */
   onchain: boolean;
 }
 

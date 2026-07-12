@@ -14,7 +14,7 @@ export const musdAbi = [
   { type: 'function', name: 'faucet', stateMutability: 'nonpayable', inputs: [], outputs: [] },
 ] as const;
 
-export const wmntAbi = [
+export const whskAbi = [
   ...erc20Abi,
   { type: 'function', name: 'deposit', stateMutability: 'payable', inputs: [], outputs: [] },
   { type: 'function', name: 'withdraw', stateMutability: 'nonpayable', inputs: [{ name: 'amount', type: 'uint256' }], outputs: [] },

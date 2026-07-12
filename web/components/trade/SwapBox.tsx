@@ -77,10 +77,10 @@ export function SwapBox({ pair }: { pair: Pair }) {
     [pair.rate]
   );
 
-  const isWmnt = pair.sym === "WMNT";
+  const isWhsk = pair.sym === "WHSK";
   const isSynthetic = SYNTHETIC.includes(pair.sym);
-  const executable = isWmnt || isSynthetic;
-  const routeLabel = isWmnt
+  const executable = isWhsk || isSynthetic;
+  const routeLabel = isWhsk
     ? "HashKey AMM"
     : isSynthetic
       ? "SyntheticExchange"
@@ -213,15 +213,15 @@ export function SwapBox({ pair }: { pair: Pair }) {
           <span>
             {executable ? (
               <>
-                {isWmnt
-                  ? "Real mUSD → WMNT swap on the HashKey AMM."
+                {isWhsk
+                  ? "Real mUSD → WHSK swap on the HashKey AMM."
                   : "Opens an oracle-priced synthetic position on HashKey Chain."}{" "}
                 The agent wallet reverts if you receive less than the minimum.
                 Testnet only - not financial advice.
               </>
             ) : (
               <>
-                {pair.sym} is advice-only — only WMNT and the synthetic markets
+                {pair.sym} is advice-only — only WHSK and the synthetic markets
                 (BTC, ETH, SUI, SOL) are executable on-chain. Testnet only - not
                 financial advice.
               </>
@@ -245,7 +245,7 @@ export function SwapBox({ pair }: { pair: Pair }) {
             }
             onClick={() => setModalOpen(true)}
           >
-            Execute {isWmnt ? "swap" : "position"} →
+            Execute {isWhsk ? "swap" : "position"} →
           </Button>
         ) : (
           <Button
@@ -254,7 +254,7 @@ export function SwapBox({ pair }: { pair: Pair }) {
             block
             disabled
             style={{ marginTop: 16 }}
-            title="Only WMNT and the synthetic markets (BTC, ETH, SUI, SOL) are executable on-chain"
+            title="Only WHSK and the synthetic markets (BTC, ETH, SUI, SOL) are executable on-chain"
           >
             Advice-only · not executable on-chain
           </Button>

@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title mUSD — Mantle USD test stablecoin (PRD §7)
+/// @title mUSD — mock USD test stablecoin (PRD §7)
 /// @notice 6-decimal ERC-20, the single settlement currency. Public `faucet()`
 ///         with a per-address cooldown + balance cap, plus `ownerMint` for seeding.
 contract MUSD is ERC20, Ownable {
@@ -19,7 +19,7 @@ contract MUSD is ERC20, Ownable {
 
     mapping(address => uint256) public lastFaucet;
 
-    constructor() ERC20("Mantle USD", "mUSD") Ownable(msg.sender) {}
+    constructor() ERC20("Mock USD", "mUSD") Ownable(msg.sender) {}
 
     function decimals() public pure override returns (uint8) {
         return DECIMALS;

@@ -8,7 +8,7 @@
 import { useEffect, useRef } from 'react';
 
 const TV_SYMBOL: Record<string, string> = {
-  WMNT: 'BYBIT:MNTUSDT', // WMNT wraps HSK; chart uses MNTUSDT as proxy feed
+  WHSK: 'BYBIT:MNTUSDT', // WHSK wraps HSK; chart uses MNTUSDT as proxy feed
   BTC: 'BYBIT:BTCUSDT',
   ETH: 'BYBIT:ETHUSDT',
   SUI: 'BYBIT:SUIUSDT',

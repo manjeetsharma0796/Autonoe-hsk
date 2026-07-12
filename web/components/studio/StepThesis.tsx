@@ -192,7 +192,7 @@ function ThesisOptionCard({
 }
 
 // ── Popular default symbols shown before any search ──────────────────────────
-const POPULAR_SYMBOLS = ["WMNT", "BTC", "ETH", "SOL", "SUI", "BNB", "XRP", "DOGE"];
+const POPULAR_SYMBOLS = ["WHSK", "BTC", "ETH", "SOL", "SUI", "BNB", "XRP", "DOGE"];
 
 // ── TokenPicker ───────────────────────────────────────────────────────────────
 
@@ -222,7 +222,7 @@ function TokenPicker({ value, onChange }: TokenPickerProps) {
     try {
       const results = await getSymbols(q || undefined, q ? 40 : 20);
       if (!q) {
-        // Reorder: WMNT first, then popular symbols, then rest by volume.
+        // Reorder: WHSK first, then popular symbols, then rest by volume.
         const popularSet = new Set(POPULAR_SYMBOLS);
         const popular = POPULAR_SYMBOLS
           .map((sym) => results.find((t) => t.symbol === sym))
@@ -377,7 +377,7 @@ export interface StepThesisProps {
 export function StepThesis({ onSendToJudge }: StepThesisProps) {
   const [intent, setIntent] = useState(DEFAULT_INTENT);
   const [humanCase, setHumanCase] = useState(DEFAULT_HUMAN_CASE);
-  const [suggestedPair, setSuggestedPair] = useState("WMNT");
+  const [suggestedPair, setSuggestedPair] = useState("WHSK");
   const [mode, setMode] = useState<Mode>("ai");
   const [sources, setSources] =
     useState<Record<DataSourceKey, boolean>>(DEFAULT_SOURCES);
@@ -554,9 +554,9 @@ export function StepThesis({ onSendToJudge }: StepThesisProps) {
               <div className={styles.field} style={{ marginTop: 18 }}>
                 <label>Token to trade</label>
                 <TokenPicker value={suggestedPair} onChange={setSuggestedPair} />
-                {suggestedPair !== "WMNT" && (
+                {suggestedPair !== "WHSK" && (
                   <p style={{ marginTop: 6, fontSize: 12, color: "var(--muted)", fontFamily: "var(--mono)" }}>
-                    Advise-only · only WMNT is executable on-chain
+                    Advise-only · only WHSK is executable on-chain
                   </p>
                 )}
               </div>

@@ -9,10 +9,10 @@ const { chat } = await import('../src/agents/assistant.ts');
 import type { Fetcher } from '../src/market/bybit.ts';
 
 const thesisCore = {
-  suggestedPair: 'WMNT',
-  reasoning: 'WMNT momentum is constructive on real candles.',
+  suggestedPair: 'WHSK',
+  reasoning: 'WHSK momentum is constructive on real candles.',
   options: [
-    { direction: 'long', asset: 'WMNT', sizeMUSD: 100, rationale: 'breakout', predictedReturnPct: { low: 5, high: 10 }, risk: 'medium' },
+    { direction: 'long', asset: 'WHSK', sizeMUSD: 100, rationale: 'breakout', predictedReturnPct: { low: 5, high: 10 }, risk: 'medium' },
     { direction: 'hedge', asset: 'BTC', sizeMUSD: 50, rationale: 'cover', predictedReturnPct: { low: -2, high: 4 }, risk: 'low' },
   ],
 };
@@ -42,7 +42,7 @@ const fakeResolve = (role: string) => {
       invoke: async () => {
         calls++;
         return calls === 1
-          ? { content: '', tool_calls: [{ name: 'get_indicators', args: { asset: 'WMNT' }, id: 't1' }] }
+          ? { content: '', tool_calls: [{ name: 'get_indicators', args: { asset: 'WHSK' }, id: 't1' }] }
           : { content: 'done', tool_calls: [] };
       },
     }),
@@ -53,13 +53,13 @@ const fakeResolve = (role: string) => {
 
 test('generateThesis runs tools, records traces, returns a structured thesis', async () => {
   const thesis = await generateThesis(
-    { intent: 'long the dip on WMNT' },
+    { intent: 'long the dip on WHSK' },
     { resolve: fakeResolve as never, fetcher: fakeFetch },
   );
   expect(thesis.source).toBe('ai');
   expect(thesis.options).toHaveLength(2);
   expect(thesis.options[0]!.id).toBe('opt-1');
-  expect(thesis.suggestedPair).toBe('WMNT');
+  expect(thesis.suggestedPair).toBe('WHSK');
   expect(thesis.traces?.some((t) => t.role === 'subagent.indicators')).toBe(true);
   expect(thesis.activeSources).toContain('subagent.indicators');
   expect(thesis.id).toMatch(/[0-9a-f-]{36}/);
@@ -67,7 +67,7 @@ test('generateThesis runs tools, records traces, returns a structured thesis', a
 
 test('structureHumanThesis marks source human with no subagents', async () => {
   const thesis = await structureHumanThesis(
-    { intent: 'my idea', body: 'long WMNT into the incentive news', suggestedPair: 'WMNT' },
+    { intent: 'my idea', body: 'long WHSK into the incentive news', suggestedPair: 'WHSK' },
     fakeResolve as never,
   );
   expect(thesis.source).toBe('human');

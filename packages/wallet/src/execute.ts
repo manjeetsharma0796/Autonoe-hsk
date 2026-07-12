@@ -1,6 +1,6 @@
 // Agent-sign + execute (T-304). Given a chosen option, the agent wallet signs
 // and submits a REAL trade on HashKey Chain, then records the decision on-chain.
-// Hybrid routing: WMNT settles via the AMM; every other asset is an oracle-priced
+// Hybrid routing: WHSK settles via the AMM; every other asset is an oracle-priced
 // synthetic position. Execution is manual-confirm — the UI confirms before calling.
 
 import { type Hex, parseUnits } from 'viem';
@@ -24,7 +24,7 @@ export interface ExecuteOptionInput {
   /** Agent private key (from `unlock`). Held only for the duration of the call. */
   privateKey: Hex;
   direction: Direction;
-  asset: string; // 'WMNT' (AMM) | 'BTC' | 'ETH' | 'SUI' | 'SOL' (synthetic)
+  asset: string; // 'WHSK' (AMM) | 'BTC' | 'ETH' | 'SUI' | 'SOL' (synthetic)
   sizeMUSD: number; // human mUSD
   thesisHash: Hex;
   verdictHash: Hex;
@@ -42,7 +42,7 @@ export interface ExecuteResult {
   txHash: Hex;
   explorerUrl: string;
   amountInMUSD: number;
-  /** AMM: WMNT out (18dec base units). Synthetic: collateral (mUSD base units). */
+  /** AMM: WHSK out (18dec base units). Synthetic: collateral (mUSD base units). */
   amountOut: string;
   positionId?: string;
   /** null if the trade committed but the on-chain DecisionLog write failed (see logError). */
@@ -72,7 +72,7 @@ async function fetchAttestation(apiBase: string, symbol: string): Promise<PriceA
   };
 }
 
-/** Execute a chosen option: real AMM swap (WMNT) or open a synthetic (others). */
+/** Execute a chosen option: real AMM swap (WHSK) or open a synthetic (others). */
 export async function executeOption(input: ExecuteOptionInput): Promise<ExecuteResult> {
   if (input.direction === 'hold') throw new Error('Cannot execute a "hold" option');
 
@@ -93,11 +93,11 @@ export async function executeOption(input: ExecuteOptionInput): Promise<ExecuteR
   let amountInUnits = sizeUnits;
   let positionId: string | undefined;
 
-  if (input.asset === 'WMNT') {
+  if (input.asset === 'WHSK') {
     kind = 'amm';
     const r = await swap(walletClient, publicClient, {
       tokenIn: addresses.mUSD,
-      tokenOut: addresses.WMNT,
+      tokenOut: addresses.WHSK,
       amountIn: sizeUnits,
       slippageBps: input.slippageBps,
     });

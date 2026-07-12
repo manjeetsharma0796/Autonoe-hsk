@@ -9,7 +9,7 @@ import { useSymbols } from "@/lib/useSymbols";
 const STATIC_MARKETS = [
   {
     badge: "W",
-    name: "WMNT",
+    name: "WHSK",
     desc: "Wrapped HSK",
     price: "-",
     change: "-",
@@ -36,11 +36,11 @@ const STATIC_MARKETS = [
   },
 ];
 
-const BADGES: Record<string, string> = { BTC: "₿", ETH: "Ξ", WMNT: "W" };
+const BADGES: Record<string, string> = { BTC: "₿", ETH: "Ξ", WHSK: "W" };
 const DESCS: Record<string, string> = {
   BTC: "Bitcoin",
   ETH: "Ether",
-  WMNT: "Wrapped HSK",
+  WHSK: "Wrapped HSK",
   SOL: "Solana",
   SUI: "Sui",
 };
@@ -69,7 +69,7 @@ function mockSparkline(changePct: number): string {
 
 export function MarketsPreview() {
   const root = useReveal(s.reveal);
-  // Show top 5 by volume; WMNT (onchain) should appear if in range
+  // Show top 5 by volume; WHSK (onchain) should appear if in range
   const { tokens, loading } = useSymbols(5);
 
   const markets = loading || tokens.length === 0

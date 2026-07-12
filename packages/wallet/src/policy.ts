@@ -26,7 +26,7 @@ export interface PolicyCheckResult {
 /** Conservative default: small per-trade cap, only the seeded mock assets. */
 export const DEFAULT_POLICY: SpendingPolicy = {
   maxTradeMUSD: 1_000,
-  allowedTokens: ['WMNT', 'BTC', 'ETH', 'SUI', 'SOL'],
+  allowedTokens: ['WHSK', 'BTC', 'ETH', 'SUI', 'SOL'],
 };
 
 /** Pure check: does this trade satisfy the policy? */

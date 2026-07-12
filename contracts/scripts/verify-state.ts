@@ -3,7 +3,7 @@ import addrs from "../../packages/chain/addresses.json";
 
 /** Read live on-chain state to confirm the deploy + seed worked. */
 async function main() {
-  const pair = await ethers.getContractAt("AmmPair", addrs.pools.mUSD_WMNT);
+  const pair = await ethers.getContractAt("AmmPair", addrs.pools.mUSD_WHSK);
   const [r0, r1] = await pair.getReserves();
   const t0 = await pair.token0();
 
@@ -15,9 +15,9 @@ async function main() {
 
   const musdIsT0 = t0.toLowerCase() === addrs.mUSD.toLowerCase();
   const musdReserve = musdIsT0 ? r0 : r1;
-  const wmntReserve = musdIsT0 ? r1 : r0;
+  const whskReserve = musdIsT0 ? r1 : r0;
 
-  console.log(`pool mUSD/WHSK  : ${ethers.formatUnits(musdReserve, 6)} mUSD  /  ${ethers.formatEther(wmntReserve)} WHSK`);
+  console.log(`pool mUSD/WHSK  : ${ethers.formatUnits(musdReserve, 6)} mUSD  /  ${ethers.formatEther(whskReserve)} WHSK`);
   console.log(`house reserve   : ${ethers.formatUnits(reserve, 6)} mUSD`);
   console.log(`oracle signer   : ${signer}`);
   for (const m of addrs.syntheticMarkets) {

@@ -33,10 +33,10 @@ describe("mUSD", () => {
   });
 });
 
-describe("WMNT", () => {
+describe("WHSK", () => {
   it("wraps and unwraps native MNT 1:1", async () => {
     const [user] = await ethers.getSigners();
-    const w = await (await ethers.getContractFactory("WMNT")).deploy();
+    const w = await (await ethers.getContractFactory("WHSK")).deploy();
     await w.connect(user).deposit({ value: ethers.parseEther("1") });
     expect(await w.balanceOf(user.address)).to.equal(ethers.parseEther("1"));
     await w.connect(user).withdraw(ethers.parseEther("0.4"));

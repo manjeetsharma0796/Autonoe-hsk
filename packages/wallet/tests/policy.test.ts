@@ -11,18 +11,18 @@ import { memoryStore } from '../src/wallet.ts';
 
 const policy: SpendingPolicy = {
   maxTradeMUSD: 500,
-  allowedTokens: ['WMNT', 'BTC'],
+  allowedTokens: ['WHSK', 'BTC'],
 };
 
 describe('spending policy', () => {
   test('allows an in-bounds trade', () => {
-    const r = checkPolicy(policy, { token: 'WMNT', amountMUSD: 100 });
+    const r = checkPolicy(policy, { token: 'WHSK', amountMUSD: 100 });
     expect(r.ok).toBe(true);
     expect(r.reason).toBeUndefined();
   });
 
   test('denies a trade over the limit', () => {
-    const r = checkPolicy(policy, { token: 'WMNT', amountMUSD: 600 });
+    const r = checkPolicy(policy, { token: 'WHSK', amountMUSD: 600 });
     expect(r.ok).toBe(false);
     expect(r.reason).toContain('exceeds');
   });
@@ -34,13 +34,13 @@ describe('spending policy', () => {
   });
 
   test('denies non-positive amounts', () => {
-    expect(checkPolicy(policy, { token: 'WMNT', amountMUSD: 0 }).ok).toBe(false);
-    expect(checkPolicy(policy, { token: 'WMNT', amountMUSD: -5 }).ok).toBe(false);
+    expect(checkPolicy(policy, { token: 'WHSK', amountMUSD: 0 }).ok).toBe(false);
+    expect(checkPolicy(policy, { token: 'WHSK', amountMUSD: -5 }).ok).toBe(false);
   });
 
   test('enforcePolicy throws on violation, passes when ok', () => {
-    expect(() => enforcePolicy(policy, { token: 'WMNT', amountMUSD: 100 })).not.toThrow();
-    expect(() => enforcePolicy(policy, { token: 'WMNT', amountMUSD: 9999 })).toThrow();
+    expect(() => enforcePolicy(policy, { token: 'WHSK', amountMUSD: 100 })).not.toThrow();
+    expect(() => enforcePolicy(policy, { token: 'WHSK', amountMUSD: 9999 })).toThrow();
   });
 
   test('getPolicy returns the default when nothing persisted', async () => {

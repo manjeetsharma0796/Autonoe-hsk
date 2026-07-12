@@ -56,7 +56,7 @@ const THESIS_FOLLOWUPS = [
   "Size this for 2% account risk",
 ];
 const ASSISTANT_FOLLOWUPS = [
-  "What is the live mUSD/WMNT depth right now?",
+  "What is the live mUSD/WHSK depth right now?",
   "Summarize the risk on my agent wallet",
   "Which asset has the strongest 4h trend?",
   "Explain how the tribunal verdict works",
@@ -76,7 +76,7 @@ function retRange(lo: number, hi: number): string {
 
 function ThesisPane() {
   const [intent, setIntent] = useState(
-    "I think WMNT runs into the HashKey ecosystem momentum. Build a 4h swing thesis against mUSD.",
+    "I think WHSK runs into the HashKey ecosystem momentum. Build a 4h swing thesis against mUSD.",
   );
   const [thesis, setThesis] = useState<Thesis | null>(null);
   const [thinking, setThinking] = useState("");
@@ -224,7 +224,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
     content:
       "I read the live mUSD book, your agent wallet, and the on-chain DecisionLog.\n\n" +
       "## What I can do\n" +
-      "- **Market reads**: price, depth, funding and 4h structure for WMNT, BTC, ETH, SUI, SOL\n" +
+      "- **Market reads**: price, depth, funding and 4h structure for WHSK, BTC, ETH, SUI, SOL\n" +
       "- **Wallet checks**: balances, exposure and risk on your agent wallet\n" +
       "- **Thesis to verdict**: turn an idea into a tribunal verdict you can execute\n\n" +
       "Ask me anything, or pick a starter below.",

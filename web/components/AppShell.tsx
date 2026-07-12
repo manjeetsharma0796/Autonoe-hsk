@@ -341,7 +341,7 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
                 {[
                   { sym: "HSK (gas)", val: formatBalance(wallet.balances.mnt, 18), col: "var(--gold2)" },
                   { sym: "mUSD", val: formatBalance(wallet.balances.mUSD, 6), col: "var(--green)" },
-                  { sym: "WMNT", val: formatBalance(wallet.balances.wmnt, 18), col: "var(--violet2)" },
+                  { sym: "WHSK", val: formatBalance(wallet.balances.whsk, 18), col: "var(--violet2)" },
                 ].map((b) => (
                   <div key={b.sym} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{b.sym}</span>
@@ -531,7 +531,7 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
                   type="text"
                   value={policyTokens}
                   onChange={(e) => setPolicyTokens(e.target.value)}
-                  placeholder="WMNT, BTC, ETH, SUI, SOL"
+                  placeholder="WHSK, BTC, ETH, SUI, SOL"
                   style={{ width: "100%", fontFamily: "var(--body)", fontSize: 13, color: "var(--ink)", padding: "10px 13px", borderRadius: 10, border: "1px solid var(--line)", background: "rgba(255,255,255,0.025)", outline: "none", marginBottom: 12 }}
                 />
                 {policyError && <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--red)", marginBottom: 8 }}>{policyError}</p>}

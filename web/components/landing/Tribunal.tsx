@@ -268,7 +268,7 @@ export function Tribunal() {
       <div className={`${s.verdict} ${s.reveal}`}>
         <div>
           <div className={s.vk}>Verdict · option A</div>
-          <h4>Long WMNT - scaled entry</h4>
+          <h4>Long WHSK - scaled entry</h4>
         </div>
         <div className={s.spacer} />
         <span className={`${s.pill} ${s.ret}`}>predicted +6.4% - +11%</span>

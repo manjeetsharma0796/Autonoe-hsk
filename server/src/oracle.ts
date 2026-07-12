@@ -11,8 +11,8 @@ type SignerAccount = ReturnType<typeof privateKeyToAccount>;
 
 const BYBIT_BASE = process.env.BYBIT_BASE ?? 'https://api.bybit.com';
 
-// WMNT trades MNT under the hood; everything else maps to <SYMBOL>USDT spot.
-const SYMBOL_OVERRIDE: Record<string, string> = { WMNT: 'MNTUSDT' };
+// WHSK trades MNT under the hood; everything else maps to <SYMBOL>USDT spot.
+const SYMBOL_OVERRIDE: Record<string, string> = { WHSK: 'MNTUSDT' };
 function bybitSymbol(sym: string): string {
   return SYMBOL_OVERRIDE[sym] ?? `${sym.toUpperCase()}USDT`;
 }

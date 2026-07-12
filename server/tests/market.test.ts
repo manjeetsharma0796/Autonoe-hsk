@@ -56,7 +56,7 @@ const fakeFetch: Fetcher = async (url) => ({
 });
 
 test('getKline returns candles oldest→newest', async () => {
-  const candles = await getKline('WMNT', '60', 3, fakeFetch);
+  const candles = await getKline('WHSK', '60', 3, fakeFetch);
   expect(candles).toHaveLength(3);
   expect(candles[0]!.close).toBe(104); // oldest first after reverse
   expect(candles.at(-1)!.close).toBe(108);

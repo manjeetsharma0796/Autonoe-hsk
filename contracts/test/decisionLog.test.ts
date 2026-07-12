@@ -8,7 +8,7 @@ describe("DecisionLog", () => {
 
     const th = ethers.id("thesis-1");
     const vh = ethers.id("verdict-1");
-    await d.logDecision(th, vh, "WMNT", 100, 95, -5, "opt-1");
+    await d.logDecision(th, vh, "WHSK", 100, 95, -5, "opt-1");
 
     expect(await d.decisionsLength()).to.equal(1);
     const ids = await d.getUserDecisions(user.address);
@@ -16,7 +16,7 @@ describe("DecisionLog", () => {
 
     const dec = await d.getDecision(0);
     expect(dec.user).to.equal(user.address);
-    expect(dec.asset).to.equal("WMNT");
+    expect(dec.asset).to.equal("WHSK");
     expect(dec.thesisHash).to.equal(th);
     expect(dec.pnl).to.equal(-5);
     expect(dec.optionRef).to.equal("opt-1");

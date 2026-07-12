@@ -23,7 +23,7 @@ const LooseNum = z
 
 const Option = z.object({
   direction: z.string().describe('one of: long, short, hedge, hold'),
-  asset: z.string().describe('one of: WMNT, BTC, ETH, SUI, SOL'),
+  asset: z.string().describe('one of: WHSK, BTC, ETH, SUI, SOL'),
   sizeMUSD: LooseNum.describe('position size in mUSD (a number)'),
   rationale: z.string(),
   predictedReturnPct: z.object({ low: LooseNum, high: LooseNum }),
@@ -31,7 +31,7 @@ const Option = z.object({
 });
 
 const ThesisCore = z.object({
-  suggestedPair: z.string().describe('one of: WMNT, BTC, ETH, SUI, SOL'),
+  suggestedPair: z.string().describe('one of: WHSK, BTC, ETH, SUI, SOL'),
   reasoning: z.string().describe('overall reasoning grounded in the tool evidence, 2-4 sentences'),
   // min(1) (not 2): some providers hard-REJECT the tool call when the model
   // returns a single option ("/options: minimum 2 items"), which would dead-end
@@ -42,7 +42,7 @@ type RawThesisCore = z.infer<typeof ThesisCore>;
 
 // ── normalization: loose model output → strict ThesisOption fields ─────────────
 
-const ASSETS = ['WMNT', 'BTC', 'ETH', 'SUI', 'SOL'] as const;
+const ASSETS = ['WHSK', 'BTC', 'ETH', 'SUI', 'SOL'] as const;
 type Asset = (typeof ASSETS)[number];
 const DIRECTIONS = ['long', 'short', 'hedge', 'hold'] as const;
 type Direction = (typeof DIRECTIONS)[number];
@@ -65,7 +65,7 @@ function toNum(v: number | string, fallback: number): number {
 
 function normAsset(v: unknown): Asset {
   const s = String(v ?? '').toUpperCase();
-  return ASSETS.find((a) => s.includes(a)) ?? 'WMNT';
+  return ASSETS.find((a) => s.includes(a)) ?? 'WHSK';
 }
 
 function normDirection(v: unknown): Direction {
@@ -120,7 +120,7 @@ function ensureTwoOptions(options: NormOption[]): NormOption[] {
 
 const SYSTEM =
   'You are Autonoe, an autonomous crypto trading strategist on HashKey Chain. ' +
-  'Assets tradable against the mUSD stablecoin: WMNT (real AMM), BTC, ETH, SUI, SOL (synthetics). ' +
+  'Assets tradable against the mUSD stablecoin: WHSK (real AMM), BTC, ETH, SUI, SOL (synthetics). ' +
   'Use the available tools to gather real price, candle, indicator and on-chain evidence for the ' +
   'assets relevant to the user intent before forming a view. Be specific and honest about risk. ' +
   'When you write reasoning or rationale prose, structure it with short bold labels and tag risk ' +
@@ -195,7 +195,7 @@ export async function generateThesis(
         'Now output the final thesis as structured data, grounded strictly in the tool evidence above. ' +
           'Provide 2 to 4 DISTINCT risk-tiered options (vary the size, direction, or risk) so the user has a real choice. ' +
           'Types matter: sizeMUSD and predictedReturnPct.low/high must be plain numbers (not quoted strings); ' +
-          'risk must be exactly "low", "medium", or "high"; asset one of WMNT, BTC, ETH, SUI, SOL.',
+          'risk must be exactly "low", "medium", or "high"; asset one of WHSK, BTC, ETH, SUI, SOL.',
       ),
     ]);
 

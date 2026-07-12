@@ -19,7 +19,7 @@ export type Pair = {
 
 export const PAIRS: Pair[] = [
   {
-    sym: "WMNT",
+    sym: "WHSK",
     badge: "W",
     sub: "Wrapped HSK",
     bybitSymbol: "MNTUSDT",
@@ -67,7 +67,7 @@ export const STATS = [
 export const BALANCES = [
   { sym: "mUSD", badge: "$", n: "12,500.00", sub: "≈ $12,500", tone: undefined },
   {
-    sym: "WMNT",
+    sym: "WHSK",
     badge: "W",
     n: "318.40",
     sub: "+4.21% · ≈ $408.92",
@@ -113,11 +113,11 @@ export const CANDLES: [number, number, number, number][] = [
 export const THINKING_STEPS: { head: string; rest: string }[] = [
   {
     head: "Parsed intent",
-    rest: " - directional swing, asset WMNT, base mUSD, ~4h horizon, bullish bias.",
+    rest: " - directional swing, asset WHSK, base mUSD, ~4h horizon, bullish bias.",
   },
   {
     head: "On-chain pull",
-    rest: " - WMNT/mUSD pool depth 3.91M, 24h vol 842k, net inflow positive over 3 sessions.",
+    rest: " - WHSK/mUSD pool depth 3.91M, 24h vol 842k, net inflow positive over 3 sessions.",
   },
   {
     head: "Indicators",

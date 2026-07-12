@@ -9,7 +9,7 @@ export interface ShareCardData {
   intent: string;
   /** e.g. "long" | "short" | "hedge" | "hold" */
   direction: string;
-  /** e.g. "WMNT" */
+  /** e.g. "WHSK" */
   asset: string;
   /** e.g. 600 */
   sizeMUSD: number;

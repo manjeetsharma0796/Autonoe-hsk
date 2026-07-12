@@ -31,9 +31,9 @@ export function Balances() {
             </div>
             <div className="c">
               <div className="sy">
-                <span className="b">W</span> WMNT
+                <span className="b">W</span> WHSK
               </div>
-              <div className="n">{fmt(b.wmnt, 18, 4)}</div>
+              <div className="n">{fmt(b.whsk, 18, 4)}</div>
               <div className="subv">wrapped HSK</div>
             </div>
             <div className="c">

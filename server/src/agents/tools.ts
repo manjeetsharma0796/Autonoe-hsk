@@ -8,7 +8,7 @@ import type { AIRole, AssetSymbol, ReasoningTrace } from '@autonoe/shared';
 import { getKline, getTicker, closes, type Fetcher } from '../market/bybit.ts';
 import { snapshot } from '../market/indicators.ts';
 
-const Asset = z.object({ asset: z.enum(['WMNT', 'BTC', 'ETH', 'SUI', 'SOL']) });
+const Asset = z.object({ asset: z.enum(['WHSK', 'BTC', 'ETH', 'SUI', 'SOL']) });
 
 export interface TraceRecorder {
   add(role: AIRole, name: string, summary: string, detail: string): void;
@@ -73,7 +73,7 @@ export function makeTools(rec: TraceRecorder, active: AIRole[], f?: Fetcher) {
   const onchainTool = tool(
     async () => {
       // Mock until the chain lib (T-108) exposes AMM reserves on HashKey Chain.
-      const detail = 'mUSD/WMNT mid 1.2843, depth ~42k mUSD, 24h vol +18% (AMM, placeholder)';
+      const detail = 'mUSD/WHSK mid 1.2843, depth ~42k mUSD, 24h vol +18% (AMM, placeholder)';
       rec.add('subagent.onchain', 'onchain:amm', 'Read on-chain AMM state (placeholder)', detail);
       return detail;
     },

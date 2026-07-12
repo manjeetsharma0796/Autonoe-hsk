@@ -25,18 +25,18 @@ export interface AgentBalances {
   mnt: bigint;
   /** mUSD, 6dec base units. */
   mUSD: bigint;
-  /** WMNT, 18dec base units. */
-  wmnt: bigint;
+  /** WHSK, 18dec base units. */
+  whsk: bigint;
 }
 
 export async function getAgentBalances(address: `0x${string}`, rpcUrl?: string): Promise<AgentBalances> {
   const pc = getPublicClient(rpcUrl);
-  const [mnt, mUSD, wmnt] = await Promise.all([
+  const [mnt, mUSD, whsk] = await Promise.all([
     getBalance(pc, { address }),
     readContract(pc, { address: addresses.mUSD, abi: erc20Abi, functionName: 'balanceOf', args: [address] }),
-    readContract(pc, { address: addresses.WMNT, abi: erc20Abi, functionName: 'balanceOf', args: [address] }),
+    readContract(pc, { address: addresses.WHSK, abi: erc20Abi, functionName: 'balanceOf', args: [address] }),
   ]);
-  return { mnt, mUSD, wmnt };
+  return { mnt, mUSD, whsk };
 }
 
 /** Mint mUSD to the agent via the token faucet (cooldown + cap enforced on-chain). */

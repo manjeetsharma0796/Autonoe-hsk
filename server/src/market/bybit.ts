@@ -1,13 +1,13 @@
 // Bybit v5 public market data (no API key needed for spot kline/tickers).
-// Our tradable assets map to Bybit spot symbols; WMNT analyses use MNTUSDT
-// (proxy feed while WMNT wraps native HSK) while the on-chain AMM remains the execution truth.
+// Our tradable assets map to Bybit spot symbols; WHSK analyses use MNTUSDT
+// (proxy feed while WHSK wraps native HSK) while the on-chain AMM remains the execution truth.
 
 import type { AssetSymbol } from '@autonoe/shared';
 
 const BASE = process.env.BYBIT_BASE ?? 'https://api.bybit.com';
 
 export const BYBIT_SYMBOL: Record<AssetSymbol, string> = {
-  WMNT: 'MNTUSDT', // WMNT wraps HSK; analyses use MNTUSDT as proxy
+  WHSK: 'MNTUSDT', // WHSK wraps HSK; analyses use MNTUSDT as proxy
   BTC: 'BTCUSDT',
   ETH: 'ETHUSDT',
   SUI: 'SUIUSDT',
@@ -109,7 +109,7 @@ import type { TokenInfo } from '@autonoe/shared';
 
 /**
  * Fetch all *USDT spot tickers, sort by volume24h desc, return top `limit`.
- * MNTUSDT is remapped to WMNT (onchain: true); everything else is advise-only.
+ * MNTUSDT is remapped to WHSK (onchain: true); everything else is advise-only.
  */
 export async function getAllTickers(
   q = '',
@@ -127,14 +127,14 @@ export async function getAllTickers(
     .map((t) => {
       const bybitSymbol = t.symbol!;
       const base = bybitSymbol.replace(/USDT$/, '');
-      const isWMNT = base === 'MNT';
+      const isWHSK = base === 'MNT';
       return {
-        symbol: isWMNT ? 'WMNT' : base,
+        symbol: isWHSK ? 'WHSK' : base,
         bybitSymbol,
         price: Number(t.lastPrice ?? 0),
         change24hPct: Number(t.price24hPcnt ?? 0) * 100,
         volume24h: Number(t.volume24h ?? 0),
-        onchain: isWMNT,
+        onchain: isWHSK,
       };
     })
     .sort((a, b) => b.volume24h - a.volume24h);

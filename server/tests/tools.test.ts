@@ -26,10 +26,10 @@ test('makeTools respects the active-source allow-list', () => {
 test('get_indicators runs and records a reasoning trace', async () => {
   const rec = makeRecorder();
   const { byName } = makeTools(rec, ['subagent.indicators'], fakeFetch);
-  const out = String(await byName.get('get_indicators')!.invoke({ asset: 'WMNT' }));
+  const out = String(await byName.get('get_indicators')!.invoke({ asset: 'WHSK' }));
   expect(out).toContain('RSI14');
   const traces = rec.traces();
   expect(traces).toHaveLength(1);
   expect(traces[0]!.role).toBe('subagent.indicators');
-  expect(traces[0]!.steps[0]!.label).toBe('indicators:WMNT');
+  expect(traces[0]!.steps[0]!.label).toBe('indicators:WHSK');
 });

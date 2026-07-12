@@ -91,7 +91,7 @@ const QUESTIONS: Question[] = [
     q: "Got it. Which asset are we looking at?",
     chart: true,
     opts: [
-      { v: "WMNT", label: "WMNT" },
+      { v: "WHSK", label: "WHSK" },
       { v: "BTC", label: "BTC" },
       { v: "ETH", label: "ETH" },
       { v: "SOL", label: "SOL" },
@@ -192,10 +192,10 @@ function suggestedSources(a: Answers): Record<DataSourceKey, boolean> {
   };
 }
 
-/** Normalize the asset answer onto a valid AssetSymbol; fall back to WMNT. */
+/** Normalize the asset answer onto a valid AssetSymbol; fall back to WHSK. */
 function toAssetSymbol(raw: string | undefined): AssetSymbol {
   const up = (raw ?? "").trim().toUpperCase();
-  return (ASSET_SYMBOLS as readonly string[]).includes(up) ? (up as AssetSymbol) : "WMNT";
+  return (ASSET_SYMBOLS as readonly string[]).includes(up) ? (up as AssetSymbol) : "WHSK";
 }
 
 /** Returns true if the message is asking for a price chart (not just a price). */
@@ -212,10 +212,10 @@ const ASSET_NAME_MAP: Record<string, AssetSymbol> = {
   solana: "SOL",
   sol: "SOL",
   sui: "SUI",
-  mantle: "WMNT",
-  hashkey: "WMNT",
-  wmnt: "WMNT",
-  mnt: "WMNT",
+  mantle: "WHSK",
+  hashkey: "WHSK",
+  whsk: "WHSK",
+  mnt: "WHSK",
 };
 
 /**

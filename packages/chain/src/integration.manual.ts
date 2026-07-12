@@ -1,6 +1,6 @@
 /**
  * Manual integration check against LIVE HashKey Chain.
- * Runs a real mUSD/WMNT swap + a synthetic BTC open/close using the deployer key
+ * Runs a real mUSD/WHSK swap + a synthetic BTC open/close using the deployer key
  * (which is the oracle's trusted signer). Not a unit test — needs a funded key:
  *
  *   DEPLOYER_PRIVATE_KEY=... npx tsx src/integration.manual.ts
@@ -32,12 +32,12 @@ async function main() {
     await waitForTransactionReceipt(publicClient, { hash: h });
   }
 
-  // ── 1) real AMM swap: 500 mUSD -> WMNT ──
+  // ── 1) real AMM swap: 500 mUSD -> WHSK ──
   const amountIn = M6(500);
-  const quote = await getQuote(publicClient, { tokenIn: addresses.mUSD, tokenOut: addresses.WMNT, amountIn });
-  console.log(`quote: 500 mUSD -> ${formatUnits(quote, 18)} WMNT`);
-  const res = await swap(walletClient, publicClient, { tokenIn: addresses.mUSD, tokenOut: addresses.WMNT, amountIn, slippageBps: 100 });
-  console.log(`✔ swap out=${formatUnits(BigInt(res.amountOut), 18)} WMNT  ${res.explorerUrl}`);
+  const quote = await getQuote(publicClient, { tokenIn: addresses.mUSD, tokenOut: addresses.WHSK, amountIn });
+  console.log(`quote: 500 mUSD -> ${formatUnits(quote, 18)} WHSK`);
+  const res = await swap(walletClient, publicClient, { tokenIn: addresses.mUSD, tokenOut: addresses.WHSK, amountIn, slippageBps: 100 });
+  console.log(`✔ swap out=${formatUnits(BigInt(res.amountOut), 18)} WHSK  ${res.explorerUrl}`);
 
   // ── 2) synthetic BTC long: open @100k, close @110k (+10%) ──
   const size = M6(1000);

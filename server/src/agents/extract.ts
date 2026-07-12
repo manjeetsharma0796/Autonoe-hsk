@@ -19,7 +19,7 @@ const Extracted = z.object({
   asset: z
     .string()
     .nullish()
-    .describe('the ticker symbol in uppercase, e.g. SOL, BTC, ETH, WMNT, SUI'),
+    .describe('the ticker symbol in uppercase, e.g. SOL, BTC, ETH, WHSK, SUI'),
   capital: z
     .string()
     .nullish()
@@ -45,11 +45,11 @@ type Extracted = z.infer<typeof Extracted>;
 
 const SYSTEM =
   'You extract trade-scoping fields from a single free-form message a user typed ' +
-  'while scoping a crypto trade (assets vs the mUSD stablecoin: WMNT, BTC, ETH, SUI, SOL). ' +
+  'while scoping a crypto trade (assets vs the mUSD stablecoin: WHSK, BTC, ETH, SUI, SOL). ' +
   'Set a field ONLY when the user clearly states or strongly implies it; otherwise leave it ' +
   'null. Do not guess or invent. Map natural phrasing to the canonical values:\n' +
   '- goal: one of grow, hedge, scalp, swing. buy / accumulate / "go long" / "grow my stack" -> grow.\n' +
-  '- asset: the ticker symbol, uppercase (e.g. SOL, BTC, WMNT).\n' +
+  '- asset: the ticker symbol, uppercase (e.g. SOL, BTC, WHSK).\n' +
   '- capital: the position size exactly as written, e.g. "10 SOL" or "$500". Keep the unit the user used.\n' +
   '- risk: one of low, med, high. aggressive/degen/yolo -> high; conservative/safe -> low.\n' +
   '- horizon: the time horizon EXACTLY as stated, e.g. "5 days", "intraday", "a week", "1 month". Keep the user wording; do NOT round it to a bucket like "a few days".\n' +
