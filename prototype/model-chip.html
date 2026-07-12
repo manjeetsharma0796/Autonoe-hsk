@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Autonoe · ModelChip</title>
+<style>
+  :root{
+    --bg:#0a0d12; --bg2:#0c111c; --surface:#11151c;
+    --ink:#f4f7fb; --muted:#aab8cd; --faint:#8b97ad;
+    --violet:#8b5cf6; --violet2:#b79cff; --gold:#f5a524; --gold2:#ffcc66;
+    --green:#3fe0a6; --red:#ff6b6b;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.045);
+    --r-pill:999px; --r-md:8px; --r-lg:12px;
+    --dur:180ms; --dur-fast:120ms; --ease:cubic-bezier(.2,.6,.2,1);
+    --shadow:0 30px 80px -30px rgba(0,0,0,.8);
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
+    --body:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 460px at 50% -10%,#15171f,var(--bg) 60%);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:680px;margin:0 auto;padding:30px}
+  .h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-family:var(--mono);margin-bottom:14px}
+  .card{background:linear-gradient(180deg,var(--surface),#0c1016);border:1px solid var(--line);border-radius:14px;padding:8px 4px}
+  .ra-group{padding:8px 14px}
+  .ra-gtitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:8px 0 6px}
+  .ra-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line2)}
+  .ra-row:last-child{border-bottom:none}
+  .ra-role{font-weight:600;font-size:14px}
+  .ra-desc{font-size:12px;color:var(--faint);margin-top:2px}
+  .ra-note{font-family:var(--mono);font-size:11px;color:var(--faint);padding:12px 16px 4px}
+
+  /* ===== ModelChip (verbatim from web/components/ai/model-chip.css) ===== */
+  .mchip-wrap{position:relative;display:inline-flex}
+  .mchip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:rgba(139,92,246,.06);padding:6px 11px;border-radius:var(--r-pill);cursor:pointer;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease);max-width:100%}
+  .mchip:hover{border-color:var(--violet)}
+  .mchip .ic{width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet);flex-shrink:0}
+  .mchip .prov{color:var(--faint)}
+  .mchip b{color:var(--violet2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mchip .car{color:var(--faint);flex-shrink:0}
+  .mchip.unset{background:rgba(245,165,36,.06);border-color:rgba(245,165,36,.3);color:var(--gold2)}
+  .mchip.warn{border-color:rgba(245,165,36,.4)}
+  .mchip.warn .ic{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .mchip .warn-tag{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#1b1305;background:var(--gold2);border-radius:4px;padding:1px 5px}
+  .mchip .synced{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+
+  .mpop{position:absolute;z-index:60;top:calc(100% + 8px);right:0;width:300px;max-width:86vw;border:1px solid var(--line);border-radius:var(--r-lg);background:rgba(12,17,28,.96);backdrop-filter:blur(16px);box-shadow:var(--shadow);overflow:hidden}
+  .mpop-head{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid var(--line2);font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .mpop-head .role{color:var(--violet2)}
+  .mpop-provs{display:flex;flex-wrap:wrap;gap:6px;padding:11px 13px;border-bottom:1px solid var(--line2)}
+  .mpop-prov{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.015);border-radius:var(--r-pill);padding:5px 10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
+  .mpop-prov:hover{color:var(--ink);border-color:rgba(255,255,255,.2)}
+  .mpop-prov.on{color:var(--ink);border-color:var(--violet);background:rgba(139,92,246,.12)}
+  .mpop-prov .d{width:6px;height:6px;border-radius:50%;background:var(--faint)}
+  .mpop-prov .d.live{background:var(--green);box-shadow:0 0 7px var(--green)}
+  .mpop-key{padding:12px 13px}
+  .mpop-key-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold2);margin-bottom:8px}
+  .mpop-key-row{display:flex;gap:7px}
+  .mpop-key-input{flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg2);color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 10px;outline:none}
+  .mpop-key-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,165,36,.16)}
+  .mpop-key-save{font-family:var(--body);font-weight:600;font-size:12.5px;color:#1b1305;background:linear-gradient(100deg,var(--gold),var(--gold2));border:0;border-radius:var(--r-md);padding:0 14px;cursor:pointer}
+  .mpop-key-save:disabled{opacity:.5;cursor:not-allowed}
+  .mpop-key-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+  .mpop-key-foot a{color:var(--violet2)}
+  .mpop-filter{width:100%;border:none;border-bottom:1px solid var(--line2);background:transparent;color:var(--ink);font-family:var(--mono);font-size:12px;padding:9px 13px;outline:none}
+  .mpop-list{max-height:220px;overflow-y:auto}
+  .mpop-opt{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;background:transparent;cursor:pointer;padding:9px 13px;font-family:var(--mono);font-size:12px;color:var(--muted);transition:background var(--dur-fast) var(--ease)}
+  .mpop-opt:hover{background:rgba(255,255,255,.04);color:var(--ink)}
+  .mpop-opt.on{color:var(--violet2)}
+  .mpop-opt .ctx{margin-left:auto;font-size:10px;color:var(--faint)}
+  .mpop-opt .free{font-size:9px;letter-spacing:.08em;color:var(--green);border:1px solid rgba(63,224,166,.3);border-radius:4px;padding:1px 4px}
+  .mpop-state{padding:14px 13px;font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.5}
+  .mpop-foot{display:flex;align-items:center;gap:6px;padding:10px 13px;border-top:1px solid var(--line2);font-family:var(--mono);font-size:11px;color:var(--violet2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="h">Tribunal · model per agent</div>
+  <div class="card" id="card"></div>
+  <p class="ra-note">Each change applies to every run. Missing a key? Add it right on the chip. Pasting a key on one agent unlocks that provider for all three.</p>
+</div>
+
+<script>
+/* shared (provider-level) state - a key unlocks the provider for every role */
+const PROVIDERS = [
+  { id:'groq', label:'Groq', hasKey:false, keysUrl:'https://console.groq.com/keys' },
+  { id:'mistral', label:'Mistral', hasKey:false, keysUrl:'https://console.mistral.ai/api-keys' },
+  { id:'nvidia', label:'NVIDIA', hasKey:false, keysUrl:'#' },
+  { id:'openrouter', label:'OpenRouter', hasKey:false, keysUrl:'https://openrouter.ai/keys' },
+  { id:'gemini', label:'Gemini', hasKey:false, keysUrl:'https://aistudio.google.com/apikey' },
+];
+const MODELS = {
+  groq:[{id:'llama-3.3-70b-versatile',label:'llama-3.3-70b-versatile',free:true,ctx:128000},{id:'llama-3.1-8b-instant',label:'llama-3.1-8b-instant',free:true,ctx:128000},{id:'mixtral-8x7b-32768',label:'mixtral-8x7b',ctx:32768}],
+  mistral:[{id:'mistral-large-latest',label:'mistral-large-latest',ctx:128000},{id:'mistral-medium-2505',label:'mistral-medium-2505',ctx:128000},{id:'mistral-small-latest',label:'mistral-small-latest',free:true,ctx:32000}],
+  nvidia:[{id:'nemotron-4-340b-instruct',label:'nemotron-4-340b-instruct',ctx:4096},{id:'llama-3.1-nemotron-70b',label:'llama-3.1-nemotron-70b',ctx:128000}],
+  openrouter:[{id:'anthropic/claude-3.5-sonnet',label:'claude-3.5-sonnet',ctx:200000},{id:'meta-llama/llama-3.1-405b',label:'llama-3.1-405b',free:true,ctx:128000},{id:'qwen/qwen-2.5-72b',label:'qwen-2.5-72b',ctx:128000}],
+  gemini:[{id:'gemini-2.0-flash',label:'gemini-2.0-flash',free:true,ctx:1000000},{id:'gemini-1.5-pro',label:'gemini-1.5-pro',ctx:2000000}],
+};
+const ROLES = [
+  { role:'supporter', label:'Supporter', desc:'Argues for the thesis', primary:true },
+  { role:'discriminator', label:'Discriminator', desc:'Argues against the thesis' },
+  { role:'judge', label:'Judge', desc:'Weighs both sides, delivers the verdict' },
+];
+const state = { supporter:{provider:null,model:null,overridden:false}, discriminator:{provider:null,model:null,overridden:false}, judge:{provider:null,model:null,overridden:false} };
+const provById = id => PROVIDERS.find(p=>p.id===id);
+const CARET = '<svg class="car" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+
+const card = document.getElementById('card');
+const chips = {};
+
+ROLES.forEach(r=>{
+  const group = document.createElement('div'); group.className='ra-row';
+  const meta = document.createElement('div'); meta.className='ra-meta';
+  meta.innerHTML = `<div class="ra-role">${r.label}</div><div class="ra-desc">${r.desc}</div>`;
+  const wrap = document.createElement('div'); wrap.className='mchip-wrap';
+  const chip = document.createElement('button'); chip.className='mchip unset'; chip.type='button';
+  let pop=null, activeProv=null, filter='';
+  chips[r.role]=chip;
+
+  chip.onclick=()=>{ if(pop){close();return;} open(); };
+  function open(){
+    activeProv = state[r.role].provider || (PROVIDERS.find(p=>p.hasKey)||PROVIDERS[0]).id; filter='';
+    pop=document.createElement('div'); pop.className='mpop'; wrap.appendChild(pop); render();
+    setTimeout(()=>document.addEventListener('mousedown',outside),0);
+  }
+  function close(){ if(pop){pop.remove();pop=null;} document.removeEventListener('mousedown',outside); }
+  function outside(e){ if(!wrap.contains(e.target)) close(); }
+
+  function render(){
+    const prov = provById(activeProv);
+    let body='';
+    if(!prov.hasKey){
+      body = `<div class="mpop-key">
+        <div class="mpop-key-lab">${prov.label} API key</div>
+        <div class="mpop-key-row"><input class="mpop-key-input" type="password" placeholder="paste key…" autocomplete="off" spellcheck="false"/><button class="mpop-key-save" disabled>Save</button></div>
+        <div class="mpop-key-foot"><a href="${prov.keysUrl}" target="_blank" rel="noopener">get a key →</a><span>stored server-side, never in the browser</span></div>
+      </div>`;
+    } else {
+      const ms = MODELS[prov.id]||[];
+      const f = filter? ms.filter(m=>(m.label+m.id).toLowerCase().includes(filter.toLowerCase())):ms;
+      const cur = state[r.role];
+      const filterBox = ms.length>6? `<input class="mpop-filter" placeholder="filter models…" value="${filter}"/>`:'';
+      body = filterBox + `<div class="mpop-list">${f.map(m=>{
+        const on = cur.provider===prov.id && cur.model===m.id;
+        return `<button class="mpop-opt ${on?'on':''}" data-m="${m.id}">${on?'●':'○'} ${m.label}${m.free?'<span class="free">FREE</span>':''}${m.ctx?`<span class="ctx">${Math.round(m.ctx/1000)}K</span>`:''}</button>`;
+      }).join('')||'<div class="mpop-state">No models match.</div>'}</div>`;
+    }
+    pop.innerHTML = `<div class="mpop-head">Model · <span class="role">${r.label}</span></div>
+      <div class="mpop-provs">${PROVIDERS.map(p=>`<button class="mpop-prov ${p.id===activeProv?'on':''}" data-p="${p.id}"><span class="d ${p.hasKey?'live':''}"></span>${p.label}</button>`).join('')}</div>
+      ${body}
+      <div class="mpop-foot"><a href="#">Manage all roles in Settings →</a></div>`;
+    // wire provider buttons
+    pop.querySelectorAll('.mpop-prov').forEach(b=>b.onclick=()=>{activeProv=b.dataset.p;filter='';render();});
+    // key paste
+    const ki=pop.querySelector('.mpop-key-input'), ks=pop.querySelector('.mpop-key-save');
+    if(ki){ ki.focus(); ki.oninput=()=>ks.disabled=!ki.value.trim();
+      ki.onkeydown=e=>{if(e.key==='Enter'&&ki.value.trim())saveKey(ki.value.trim());};
+      ks.onclick=()=>{if(ki.value.trim())saveKey(ki.value.trim());}; }
+    // filter
+    const fb=pop.querySelector('.mpop-filter'); if(fb){fb.oninput=()=>{filter=fb.value;render();fb.focus();fb.setSelectionRange(filter.length,filter.length);};}
+    // model select
+    pop.querySelectorAll('.mpop-opt').forEach(b=>b.onclick=()=>choose(prov.id,b.dataset.m));
+  }
+  function saveKey(){ const prov=provById(activeProv); prov.hasKey=true; render(); }
+  function choose(provId,modelId){
+    state[r.role]={provider:provId,model:modelId,overridden: r.primary?false:true};
+    if(r.primary){ ['discriminator','judge'].forEach(o=>{ if(!state[o].overridden) state[o]={provider:provId,model:modelId,overridden:false}; }); }
+    close(); updateAll();
+  }
+
+  wrap.appendChild(chip); group.appendChild(meta); group.appendChild(wrap); card.appendChild(group);
+});
+
+function updateChip(role){
+  const chip=chips[role], s=state[role]; const prov=s.provider?provById(s.provider):null;
+  const needsKey = prov && !prov.hasKey;
+  chip.className='mchip'+(s.model?'':' unset')+(needsKey?' warn':'');
+  const syncedToPrimary = role!=='supporter' && !s.overridden && s.model;
+  if(!s.model){ chip.innerHTML=`<span class="ic"></span><span>Choose model</span>${CARET}`; }
+  else { chip.innerHTML=`<span class="ic"></span><span class="prov">${s.provider} ·</span><b>${s.model}</b>${needsKey?'<span class="warn-tag">needs key</span>':''}${syncedToPrimary?'<span class="synced">auto</span>':''}${CARET}`; }
+}
+function updateAll(){ ROLES.forEach(r=>updateChip(r.role)); }
+updateAll();
+</script>
+</body>
+</html>

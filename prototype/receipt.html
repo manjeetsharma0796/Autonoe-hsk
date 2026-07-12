@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Decision Receipt</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ---- page-local layout helpers (compose existing tokens only) ---- */
+    .receipt-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+    .receipt-head .eyebrow { margin-bottom:6px; }
+    .receipt-head h1 { margin:0 0 8px; }
+    .receipt-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+    /* vertical reasoning flow */
+    .flow { position:relative; }
+    .flow-step { position:relative; padding-left:46px; padding-bottom:22px; }
+    .flow-step:last-child { padding-bottom:0; }
+    .flow-step::before {
+      content:""; position:absolute; left:15px; top:30px; bottom:-4px;
+      width:2px; background:var(--border);
+    }
+    .flow-step:last-child::before { display:none; }
+    .flow-node {
+      position:absolute; left:0; top:2px;
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-mono); font-size:13px; font-weight:700;
+      background:var(--bg-inset); border:1px solid var(--border-strong);
+      color:var(--text-muted); z-index:1;
+    }
+    .flow-node.on-accent { color:var(--accent); border-color:var(--accent-dim); background:var(--accent-soft); }
+    .flow-node.on-violet { color:var(--violet); border-color:var(--violet); background:var(--violet-soft); }
+    .flow-node.on-warn   { color:var(--warn); border-color:rgba(245,177,76,.5); background:var(--warn-soft); }
+    .flow-node.on-down   { color:var(--baseline); border-color:rgba(255,92,114,.5); background:var(--baseline-soft); }
+    .flow-step-title { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .flow-step-title h3 { margin:0; }
+    .flow-step-title .lbl { font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); font-weight:700; }
+
+    /* thesis option rows */
+    .opt { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-inset); }
+    .opt + .opt { margin-top:10px; }
+    .opt.chosen { border-color:var(--accent-dim); background:var(--accent-soft); }
+    .opt-name { font-weight:600; display:flex; align-items:center; gap:8px; }
+    .opt-desc { color:var(--text-muted); font-size:13px; margin-top:3px; }
+    .opt-band { text-align:right; }
+    .band { display:inline-flex; align-items:center; gap:6px; }
+    .band-track { width:96px; height:8px; border-radius:999px; background:var(--bg-elev-2); position:relative; overflow:hidden; border:1px solid var(--border); }
+    .band-fill { position:absolute; top:0; bottom:0; border-radius:999px; }
+
+    /* debate columns */
+    .debate-col { background:var(--bg-inset); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; display:flex; flex-direction:column; }
+    .debate-col .role { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .debate-col .role-name { font-weight:650; font-size:13px; letter-spacing:.02em; }
+    .debate-col.supporter { border-top:2px solid var(--accent); }
+    .debate-col.discriminator { border-top:2px solid var(--baseline); }
+    .debate-col.judge { border-top:2px solid var(--info); }
+    .debate-col .arg { color:var(--text); font-size:13.5px; line-height:1.55; margin:0 0 12px; flex:1; }
+    .debate-col .model-attr { font-size:11px; color:var(--text-dim); font-family:var(--font-mono); display:flex; align-items:center; gap:6px; margin-top:auto; padding-top:10px; border-top:1px solid var(--border); }
+    .role-dot { width:8px; height:8px; border-radius:50%; }
+
+    /* verdict bar */
+    .verdict-bar { display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:var(--radius-sm); margin-top:6px; }
+    .verdict-bar.approved { background:var(--accent-soft); border:1px solid var(--accent-dim); }
+    .verdict-bar.vetoed   { background:var(--baseline-soft); border:1px solid rgba(255,92,114,.5); }
+    .verdict-bar .vmark { font-size:22px; }
+    .verdict-bar .vtxt { font-size:13.5px; color:var(--text); }
+
+    /* veto gate */
+    .gate { display:flex; gap:16px; align-items:flex-start; padding:18px; border-radius:var(--radius); border:1px solid; }
+    .gate.pass { border-color:var(--accent-dim); background:linear-gradient(180deg, var(--accent-soft) 0%, transparent 120%); }
+    .gate.fail { border-color:rgba(255,92,114,.5); background:linear-gradient(180deg, var(--baseline-soft) 0%, transparent 120%); }
+    .gate-icon { width:46px; height:46px; flex:none; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .gate.pass .gate-icon { background:var(--accent-soft); color:var(--accent); }
+    .gate.fail .gate-icon { background:var(--baseline-soft); color:var(--baseline); }
+    .gate h3 { margin:0 0 4px; }
+
+    /* chosen params */
+    .params-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    @media (max-width:720px){ .params-grid{ grid-template-columns:repeat(2,1fr);} }
+
+    /* verify box */
+    .verify-row { display:grid; grid-template-columns: 130px 1fr auto; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+    .verify-row:last-child { border-bottom:0; }
+    @media (max-width:720px){ .verify-row{ grid-template-columns:1fr; gap:6px; } }
+    .verify-label { font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); font-weight:700; }
+    .verify-hash { font-family:var(--font-mono); font-size:13px; color:var(--info); word-break:break-all; }
+    .match-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+    .verify-foot { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px; }
+
+    .outcome-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; }
+    @media (max-width:720px){ .outcome-grid{ grid-template-columns:1fr; } }
+    .big-delta { font-family:var(--font-mono); font-size:34px; font-weight:700; letter-spacing:-.02em; }
+    .pred-actual { display:flex; align-items:center; gap:10px; }
+    .pa-rail { flex:1; height:10px; border-radius:999px; background:var(--bg-elev-2); border:1px solid var(--border); position:relative; }
+    .pa-marker { position:absolute; top:-3px; width:3px; height:14px; border-radius:2px; }
+    .sealed { color:var(--violet); font-style:italic; }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="index.html">
+      <span class="logo-dot"></span>
+      Autonoe <small>Agent Arena</small>
+    </a>
+    <a class="nav-link" href="index.html">Arena</a>
+    <a class="nav-link" href="builder.html">Build</a>
+    <a class="nav-link" href="backtest.html">Backtest</a>
+    <a class="nav-link active" href="receipt.html">Receipt</a>
+    <a class="nav-link" href="execute.html">Execute</a>
+    <a class="nav-link" href="history.html">History</a>
+    <a class="nav-link" href="blackbox.html">Black-box</a>
+    <a class="nav-link" href="versions.html">Versions</a>
+    <span class="nav-spacer"></span>
+    <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+  </nav>
+
+  <main class="container">
+
+    <!-- ===== header ===== -->
+    <div class="receipt-head">
+      <div>
+        <div class="eyebrow">Verifiable Decision Receipt</div>
+        <h1 id="hdr-title">Decision Receipt</h1>
+        <div class="receipt-meta" id="hdr-meta"></div>
+      </div>
+      <div class="stack" style="text-align:right;">
+        <div class="flex gap-8" style="justify-content:flex-end;">
+          <span class="badge badge-up"><span class="dot"></span>Hash-verified</span>
+          <span id="hdr-settled"></span>
+        </div>
+        <div class="muted" style="font-size:12.5px; max-width:280px;">
+          Every step below was committed on-chain at decision time. Nothing here can be edited after the fact.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="align-items:flex-start;">
+      <!-- ===== LEFT: reasoning flow ===== -->
+      <div class="col" style="flex:1 1 620px;">
+        <div class="card">
+          <div class="card-head">
+            <h2>Reasoning chain</h2>
+            <span class="card-title-sub">Intent → Thesis → Debate → Risk gate → Execution → Outcome</span>
+          </div>
+
+          <div class="flow">
+
+            <!-- 1. INTENT -->
+            <div class="flow-step">
+              <span class="flow-node">1</span>
+              <div class="flow-step-title">
+                <span class="lbl">Intent</span>
+                <h3 id="step-intent-h">-</h3>
+              </div>
+              <div class="flex gap-8" style="flex-wrap:wrap;" id="intent-pills"></div>
+            </div>
+
+            <!-- 2. THESIS -->
+            <div class="flow-step">
+              <span class="flow-node">2</span>
+              <div class="flow-step-title">
+                <span class="lbl">Thesis</span>
+                <h3>Options weighed · predicted % band &amp; risk</h3>
+              </div>
+              <div id="thesis-opts"></div>
+            </div>
+
+            <!-- 3. DEBATE -->
+            <div class="flow-step">
+              <span class="flow-node on-accent">3</span>
+              <div class="flow-step-title">
+                <span class="lbl">Adversarial debate</span>
+                <h3>Supporter vs Discriminator, ruled by Judge</h3>
+              </div>
+              <div class="grid grid-3" id="debate-grid"></div>
+              <div id="verdict-wrap"></div>
+            </div>
+
+            <!-- 4. RISK VETO -->
+            <div class="flow-step">
+              <span class="flow-node on-warn" id="veto-node">4</span>
+              <div class="flow-step-title">
+                <span class="lbl">Risk-veto gate</span>
+                <h3>Hard policy check - can override the Judge</h3>
+              </div>
+              <div id="gate-wrap"></div>
+            </div>
+
+            <!-- 5. EXECUTION -->
+            <div class="flow-step">
+              <span class="flow-node">5</span>
+              <div class="flow-step-title">
+                <span class="lbl">Chosen parameters</span>
+                <h3>Final committed order</h3>
+              </div>
+              <div class="params-grid" id="params-grid"></div>
+            </div>
+
+            <!-- 6. OUTCOME -->
+            <div class="flow-step">
+              <span class="flow-node on-accent" id="outcome-node">6</span>
+              <div class="flow-step-title">
+                <span class="lbl">Outcome</span>
+                <h3>Realized vs predicted</h3>
+              </div>
+              <div class="outcome-grid" id="outcome-grid"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RIGHT: verify rail ===== -->
+      <div class="col" style="flex:1 1 320px;">
+        <div class="stack">
+
+          <!-- verify on-chain -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Verify on-chain</h2>
+              <span class="badge badge-up"><span class="dot"></span>Match</span>
+            </div>
+            <p style="margin-bottom:8px;">
+              The thesis and verdict were hashed and written to <span class="mono" style="color:var(--text);">DecisionLog</span>
+              before the trade executed. Re-hash the receipt locally and compare - it must match the chain.
+            </p>
+
+            <div class="verify-row">
+              <span class="verify-label">Thesis hash</span>
+              <a class="verify-hash" id="vf-thesis" target="_blank" rel="noopener">-</a>
+              <span class="match-pill">✓ Matches chain</span>
+            </div>
+            <div class="verify-row">
+              <span class="verify-label">Verdict hash</span>
+              <a class="verify-hash" id="vf-verdict" target="_blank" rel="noopener">-</a>
+              <span class="match-pill">✓ Matches chain</span>
+            </div>
+            <div class="verify-row">
+              <span class="verify-label">Settlement tx</span>
+              <a class="verify-hash" id="vf-tx" target="_blank" rel="noopener">-</a>
+              <span class="match-pill">✓ Confirmed</span>
+            </div>
+
+            <div class="verify-foot">
+              <a class="btn btn-primary btn-sm" id="vf-link-thesis" target="_blank" rel="noopener">View on Mantlescan ↗</a>
+              <a class="btn btn-ghost btn-sm" id="vf-link-contract" target="_blank" rel="noopener">DecisionLog contract ↗</a>
+              <a class="btn btn-ghost btn-sm" href="history.html">All decisions →</a>
+            </div>
+          </div>
+
+          <!-- contract / chain card -->
+          <div class="card flat">
+            <div class="card-head"><h3>Provenance</h3></div>
+            <dl class="kv" id="prov-kv"></dl>
+          </div>
+
+          <!-- audit note -->
+          <div class="card inset">
+            <div class="flex gap-8 items-center" style="margin-bottom:8px;">
+              <span class="badge badge-up"><span class="dot"></span>Auditable</span>
+            </div>
+            <p class="mb-0" style="font-size:13px;">
+              This receipt is fully reconstructible from public chain data. Anyone can fetch the
+              <span class="mono" style="color:var(--text);">configHash</span> + decision record and replay the
+              reasoning - no trust in Autonoe required.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="disclaimer-bar">
+    <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+    <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script>
+    (function () {
+      var M = window.MOCK;
+      var d = M.decisions[0];
+      var agent = M.agents.filter(function (a) { return a.id === d.agentId; })[0] || {};
+      var sealed = d.debate.verdict === "APPROVED" && /private/i.test(d.debate.supporter);
+
+      function el(id) { return document.getElementById(id); }
+      function pos(n) { return n > 0; }
+      function fmtPct(n, signed) {
+        var s = (signed && n > 0 ? "+" : "") + n.toFixed(2) + "%";
+        return s;
+      }
+      function shortHash(h) {
+        if (!h) return "-";
+        return h.length > 22 ? h.slice(0, 10) + "…" + h.slice(-8) : h;
+      }
+
+      /* ---------- header ---------- */
+      el("hdr-title").textContent = agent.name + " · " + d.direction + " " + d.asset;
+      el("hdr-meta").innerHTML =
+        '<span class="pill">bar #' + d.bar + '</span>' +
+        '<span class="pill">' + d.time + '</span>' +
+        '<span class="tag">' + d.intent + '</span>' +
+        '<span class="grade grade-' + (agent.grade || 'good') + '">' + (agent.grade || '').toUpperCase() + '</span>' +
+        (agent.isPrivate ? '<span class="badge badge-blackbox">Black-box</span>' : '<span class="badge badge-live"><span class="dot"></span>Disclosed</span>');
+      el("hdr-settled").innerHTML = d.settled
+        ? '<span class="badge badge-up"><span class="dot"></span>Settled</span>'
+        : '<span class="badge"><span class="spinner-bars"><i></i><i></i><i></i></span>Pending</span>';
+
+      /* ---------- 1. intent ---------- */
+      el("step-intent-h").textContent = d.intent + " " + d.direction + " - " + d.asset;
+      var dirClass = d.direction === "LONG" ? "badge-up" : "badge-down";
+      el("intent-pills").innerHTML =
+        '<span class="badge ' + dirClass + '">' + d.direction + '</span>' +
+        '<span class="pill">size <strong style="color:var(--text)">' + d.sizeMUSD.toFixed(1) + ' MUSD</strong></span>' +
+        '<span class="pill">leverage <strong style="color:var(--text)">' + d.leverage + 'x</strong></span>' +
+        '<span class="pill">hold <strong style="color:var(--text)">' + d.holdBars + ' bars</strong></span>' +
+        '<span class="pill">predicted <strong class="up">' + fmtPct(d.predictedPct, true) + '</strong></span>';
+
+      /* ---------- 2. thesis options ---------- */
+      // Build a small, plausible option set anchored on the real chosen direction/predicted band.
+      var chosen = d.direction;
+      var pred = d.predictedPct;
+      var options = [
+        {
+          name: chosen, chosen: true,
+          desc: "Trade the live signal - entry " + d.entry + ", target " + d.tp + ", invalidation " + d.sl + ".",
+          lo: Math.max(0, pred - 1.8), hi: pred + 1.4, risk: "Medium", riskClass: "grade-fair"
+        },
+        {
+          name: chosen === "LONG" ? "SHORT (fade)" : "LONG (fade)", chosen: false,
+          desc: "Counter the signal and fade the move back to the mean.",
+          lo: -2.2, hi: 1.1, risk: "High", riskClass: "grade-poor"
+        },
+        {
+          name: "FLAT / wait", chosen: false,
+          desc: "Stand aside until volume and funding confirm the setup.",
+          lo: 0, hi: 0, risk: "Low", riskClass: "grade-good"
+        }
+      ];
+      var maxAbs = 6.0;
+      function bandFill(lo, hi) {
+        // map [-maxAbs, +maxAbs] -> [0,100]; midline at 50%
+        var L = Math.max(-maxAbs, Math.min(maxAbs, lo));
+        var H = Math.max(-maxAbs, Math.min(maxAbs, hi));
+        var left = (L + maxAbs) / (2 * maxAbs) * 100;
+        var width = Math.max(2, (H - L) / (2 * maxAbs) * 100);
+        var color = hi <= 0 ? "var(--baseline)" : (lo >= 0 ? "var(--accent)" : "var(--warn)");
+        return '<span style="left:' + left.toFixed(1) + '%; width:' + width.toFixed(1) + '%; background:' + color + ';" class="band-fill"></span>';
+      }
+      el("thesis-opts").innerHTML = options.map(function (o) {
+        return '<div class="opt' + (o.chosen ? ' chosen' : '') + '">' +
+          '<div>' +
+            '<div class="opt-name">' + o.name +
+              (o.chosen ? ' <span class="badge badge-up" style="font-size:10px;">Chosen</span>' : '') + '</div>' +
+            '<div class="opt-desc">' + o.desc + '</div>' +
+          '</div>' +
+          '<div class="opt-band">' +
+            '<div class="band"><span class="band-track">' + bandFill(o.lo, o.hi) + '</span></div>' +
+            '<div class="num" style="font-size:12.5px; color:var(--text-muted); margin-top:5px;">' +
+              (o.lo).toFixed(1) + '% … ' + (o.hi).toFixed(1) + '%</div>' +
+            '<div style="margin-top:4px;"><span class="grade ' + o.riskClass + '" style="font-size:11px; min-width:0;">' + o.risk + ' risk</span></div>' +
+          '</div>' +
+        '</div>';
+      }).join("");
+
+      /* ---------- 3. debate ---------- */
+      var roles = [
+        { key: "supporter",     name: "Supporter",     attr: "claude-opus · proposer", cls: "supporter",     dot: "var(--accent)" },
+        { key: "discriminator", name: "Discriminator", attr: "claude-opus · adversary", cls: "discriminator", dot: "var(--baseline)" },
+        { key: "judge",         name: "Judge",         attr: "claude-opus · arbiter",   cls: "judge",         dot: "var(--info)" }
+      ];
+      el("debate-grid").innerHTML = roles.map(function (r) {
+        var txt = d.debate[r.key];
+        var isSealed = /private/i.test(txt);
+        return '<div class="debate-col ' + r.cls + '">' +
+          '<div class="role">' +
+            '<span class="flex gap-8 items-center"><span class="role-dot" style="background:' + r.dot + ';"></span>' +
+            '<span class="role-name">' + r.name + '</span></span>' +
+            (r.key === "judge" ? '<span class="badge badge-real" style="font-size:10px;">ruling</span>' : '') +
+          '</div>' +
+          '<p class="arg' + (isSealed ? ' sealed' : '') + '">' + txt + '</p>' +
+          '<div class="model-attr">⚙ ' + r.attr + '</div>' +
+        '</div>';
+      }).join("");
+
+      var approved = d.debate.verdict === "APPROVED";
+      el("verdict-wrap").innerHTML =
+        '<div class="verdict-bar ' + (approved ? 'approved' : 'vetoed') + '">' +
+          '<span class="vmark ' + (approved ? 'up' : 'down') + '">' + (approved ? '✓' : '✕') + '</span>' +
+          '<div>' +
+            '<strong style="color:var(--text);">Judge verdict: ' +
+              '<span class="' + (approved ? 'up' : 'down') + '">' + d.debate.verdict + '</span></strong>' +
+            '<div class="vtxt">' + (isSealedJudge() ? '<span class="sealed">' + d.debate.judge + '</span>' : d.debate.judge) + '</div>' +
+          '</div>' +
+        '</div>';
+      function isSealedJudge() { return /private/i.test(d.debate.judge); }
+
+      /* ---------- 4. risk veto gate ---------- */
+      var passed = d.riskVeto.passed;
+      var node = el("veto-node");
+      node.className = "flow-node " + (passed ? "on-accent" : "on-down");
+      el("gate-wrap").innerHTML =
+        '<div class="gate ' + (passed ? 'pass' : 'fail') + '">' +
+          '<div class="gate-icon">' + (passed ? '🛡' : '⛔') + '</div>' +
+          '<div style="flex:1;">' +
+            '<div class="flex gap-12 items-center" style="margin-bottom:6px;">' +
+              '<h3 style="margin:0;">Risk-veto gate</h3>' +
+              '<span class="badge ' + (passed ? 'badge-up' : 'badge-down') + '">' +
+                (passed ? 'PASSED' : 'VETOED') + '</span>' +
+            '</div>' +
+            '<p class="mb-0" style="color:var(--text); font-size:13.5px;">' + d.riskVeto.reason + '</p>' +
+            (!passed
+              ? '<p class="mb-0" style="margin-top:8px; font-size:12.5px; color:var(--baseline);">Order blocked before execution - the gate overrides the debate.</p>'
+              : '<p class="mb-0" style="margin-top:8px; font-size:12.5px;" class="muted">A failed check here vetoes the trade regardless of the Judge\'s verdict.</p>') +
+          '</div>' +
+        '</div>';
+
+      /* ---------- 5. chosen params ---------- */
+      var params = [
+        { k: "Direction", v: d.direction, cls: d.direction === "LONG" ? "up" : "down" },
+        { k: "Size", v: d.sizeMUSD.toFixed(1) + " MUSD" },
+        { k: "Leverage", v: d.leverage + "x" },
+        { k: "Entry", v: d.entry },
+        { k: "Stop-loss", v: d.sl, cls: "down" },
+        { k: "Take-profit", v: d.tp, cls: "up" },
+        { k: "Hold", v: d.holdBars + " bars" },
+        { k: "Asset", v: d.asset },
+        { k: "Risk/Reward", v: rr() }
+      ];
+      function rr() {
+        var risk = Math.abs(d.entry - d.sl);
+        var reward = Math.abs(d.tp - d.entry);
+        return risk ? (reward / risk).toFixed(2) + " : 1" : "-";
+      }
+      el("params-grid").innerHTML = params.map(function (p) {
+        return '<div class="stat">' +
+          '<span class="stat-label">' + p.k + '</span>' +
+          '<span class="stat-value sm' + (p.cls ? ' ' + p.cls : '') + '">' + p.v + '</span>' +
+        '</div>';
+      }).join("");
+
+      /* ---------- 6. outcome ---------- */
+      var realized = d.outcomePct;
+      var won = realized > 0;
+      var voided = realized === 0 && !passed;
+      el("outcome-node").className = "flow-node " + (voided ? "" : (won ? "on-accent" : "on-down"));
+
+      // predicted vs actual rail: map onto [-maxAbs, maxAbs]
+      function markerLeft(v) {
+        var c = Math.max(-maxAbs, Math.min(maxAbs, v));
+        return ((c + maxAbs) / (2 * maxAbs) * 100).toFixed(1);
+      }
+      var deltaCls = voided ? "muted" : (won ? "up" : "down");
+      el("outcome-grid").innerHTML =
+        '<div class="stat" style="grid-column:1;">' +
+          '<span class="stat-label">Realized return</span>' +
+          '<span class="big-delta ' + deltaCls + '">' + (voided ? '-' : fmtPct(realized, true)) + '</span>' +
+          '<span class="stat-sub">' + (voided ? 'No fill - trade vetoed' : (won ? 'Target reached' : 'Stopped out')) + '</span>' +
+        '</div>' +
+        '<div class="stat" style="grid-column:span 2;">' +
+          '<span class="stat-label">Predicted vs realized</span>' +
+          '<div class="pred-actual" style="margin-top:10px;">' +
+            '<span class="num" style="color:var(--info); font-size:13px;">pred ' + fmtPct(d.predictedPct, true) + '</span>' +
+            '<span class="pa-rail">' +
+              '<span class="pa-marker" style="left:' + markerLeft(d.predictedPct) + '%; background:var(--info);"></span>' +
+              (voided ? '' : '<span class="pa-marker" style="left:' + markerLeft(realized) + '%; background:' + (won ? 'var(--accent)' : 'var(--baseline)') + ';"></span>') +
+            '</span>' +
+            '<span class="num ' + deltaCls + '" style="font-size:13px;">real ' + (voided ? '-' : fmtPct(realized, true)) + '</span>' +
+          '</div>' +
+          '<div class="stat-sub" style="margin-top:8px;">' +
+            (voided ? 'Risk gate prevented entry; predicted band never tested.'
+                    : 'Realized within ' + Math.abs(realized - d.predictedPct).toFixed(2) + '% of the predicted band.') +
+          '</div>' +
+        '</div>';
+
+      /* ---------- verify rail ---------- */
+      function setHash(aId, hash) {
+        var a = el(aId);
+        a.textContent = shortHash(hash);
+        a.href = M.explorer(hash);
+        a.title = hash;
+      }
+      setHash("vf-thesis", d.thesisHash);
+      setHash("vf-verdict", d.verdictHash);
+      setHash("vf-tx", d.txHash);
+      el("vf-link-thesis").href = M.explorer(d.txHash);
+      el("vf-link-contract").href = M.explorer(M.contracts.DecisionLog);
+
+      /* ---------- provenance kv ---------- */
+      function kvRow(dt, dd, isLink, href) {
+        return '<dt>' + dt + '</dt><dd>' +
+          (isLink ? '<a class="hash addr" target="_blank" rel="noopener" href="' + href + '" title="' + dd + '">' + shortHash(dd) + '</a>' : dd) +
+          '</dd>';
+      }
+      el("prov-kv").innerHTML =
+        kvRow("Agent", agent.name) +
+        kvRow("Version", "v" + agent.version) +
+        kvRow("Owner", agent.owner, true, M.explorer(agent.owner)) +
+        kvRow("Config hash", agent.configHash, true, M.explorer(agent.configHash)) +
+        kvRow("Chain", M.contracts.chain) +
+        kvRow("Chain ID", String(M.contracts.chainId)) +
+        kvRow("Registry", M.contracts.AgentRegistry, true, M.explorer(M.contracts.AgentRegistry)) +
+        kvRow("Window", M.window.label);
+    })();
+  </script>
+</body>
+</html>

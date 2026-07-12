@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+*.local
+mono.db
+mono.db.json
+artifacts/
+cache/
+*.tsbuildinfo
+autonoe.db
+*.db
+.claude/

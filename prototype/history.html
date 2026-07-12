@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · History</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .history-header-note {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .history-header-note strong { color: var(--text); }
+    .history-header-note .accent-text { color: var(--accent); font-weight: 600; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filter-bar select {
+      width: auto;
+      min-width: 140px;
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+    .filter-bar .filter-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    /* Table: tighter for dense data */
+    .table-history th,
+    .table-history td {
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+    .table-history th { white-space: nowrap; }
+
+    .dir-long  { color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+    .dir-short { color: var(--baseline); font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+
+    .outcome-cell { display: flex; align-items: center; gap: 6px; }
+    .outcome-bar-wrap {
+      width: 52px;
+      height: 4px;
+      background: var(--bg-inset);
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .outcome-bar { height: 100%; border-radius: 2px; }
+
+    .open-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .03em;
+      background: var(--warn-soft);
+      color: var(--warn);
+      border: 1px solid transparent;
+    }
+    .open-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--warn);
+      animation: pulse 1.6s infinite;
+    }
+
+    .verdict-approved {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .verdict-vetoed {
+      color: var(--baseline);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .hash-link {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--info);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .hash-link:hover { text-decoration: underline; }
+
+    /* Modal - debate panel */
+    .debate-bubble {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .debate-bubble.supporter  { border-left: 3px solid var(--accent); background: var(--accent-soft); }
+    .debate-bubble.discriminator { border-left: 3px solid var(--warn); background: var(--warn-soft); }
+    .debate-bubble.judge      { border-left: 3px solid var(--info);  background: var(--info-soft); }
+    .debate-role {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .debate-role.supporter-role  { color: var(--accent); }
+    .debate-role.discriminator-role { color: var(--warn); }
+    .debate-role.judge-role      { color: var(--info); }
+
+    .private-sealed {
+      color: var(--violet);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    .modal-kv {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 6px 14px;
+      align-items: baseline;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .modal-kv dt { color: var(--text-dim); font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; }
+    .modal-kv dd { margin: 0; font-family: var(--font-mono); font-size: 13px; word-break: break-all; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 820px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .table-history td.veto-cell { min-width: 96px; }
+    .table-history .agent-name { font-weight: 600; }
+    .table-history .agent-id   { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+    .table-history td.ts-cell  { white-space: nowrap; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="brand" href="index.html">
+    <span class="logo-dot"></span>
+    Autonoe <small>Agent Arena</small>
+  </a>
+  <a class="nav-link" href="index.html">Arena</a>
+  <a class="nav-link" href="builder.html">Build</a>
+  <a class="nav-link" href="backtest.html">Backtest</a>
+  <a class="nav-link" href="receipt.html">Receipt</a>
+  <a class="nav-link" href="execute.html">Execute</a>
+  <a class="nav-link active" href="history.html">History</a>
+  <a class="nav-link" href="blackbox.html">Black-box</a>
+  <a class="nav-link" href="versions.html">Versions</a>
+  <span class="nav-spacer"></span>
+  <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+</nav>
+
+<main class="container">
+
+  <div class="card-head" style="margin-bottom: 18px;">
+    <div>
+      <div class="eyebrow">On-Chain Log</div>
+      <h2 style="margin:0;">Decision History</h2>
+      <p class="card-title-sub" style="margin-top:4px;">Immutable record of all agent decisions, debates, and outcomes · <span class="mono" id="contract-label"></span></p>
+    </div>
+    <div class="flex items-center gap-12">
+      <span class="badge badge-live"><span class="dot"></span>Live</span>
+    </div>
+  </div>
+
+  <div class="history-header-note">
+    <strong class="accent-text">On-chain immutability guarantee:</strong>
+    AI decisions and their outcomes are recorded on <strong>Mantle Sepolia</strong> and cannot be altered after settlement.
+    The <strong>baseline (buy &amp; hold)</strong> is reproducible off-chain from the same public Bybit window
+    (<span id="window-label-inline"></span>) - any observer can verify it independently.
+    Thesis and verdict hashes are keccak256 commitments stored in <a id="contract-link" class="hash" href="#" target="_blank" rel="noopener"></a>.
+  </div>
+
+  <!-- Summary stats -->
+  <div class="stats-row" id="stats-row">
+    <!-- rendered by JS -->
+  </div>
+
+  <!-- Filter bar -->
+  <div class="card" style="margin-bottom: 16px; padding: 14px 18px;">
+    <div class="filter-bar">
+      <span class="filter-label">Filter:</span>
+      <select id="filter-agent">
+        <option value="">All Agents</option>
+      </select>
+      <select id="filter-direction">
+        <option value="">All Directions</option>
+        <option value="LONG">Long</option>
+        <option value="SHORT">Short</option>
+      </select>
+      <select id="filter-settled">
+        <option value="">All States</option>
+        <option value="settled">Settled</option>
+        <option value="open">Open</option>
+      </select>
+      <select id="filter-veto">
+        <option value="">All Veto States</option>
+        <option value="passed">Risk Passed</option>
+        <option value="vetoed">Risk Vetoed</option>
+      </select>
+      <span class="nav-spacer"></span>
+      <span class="dim" style="font-size:12px;" id="result-count"></span>
+    </div>
+  </div>
+
+  <!-- Main table -->
+  <div class="card flat" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table class="table table-history" id="decisions-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Time (UTC)</th>
+            <th>Agent</th>
+            <th>Dir</th>
+            <th>Asset</th>
+            <th class="right">Size mUSD</th>
+            <th class="right">Predicted</th>
+            <th class="right">Outcome</th>
+            <th>Risk Veto</th>
+            <th>State</th>
+            <th>Tx Hash</th>
+            <th>Config Hash</th>
+          </tr>
+        </thead>
+        <tbody id="decisions-tbody">
+          <!-- rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+    <div id="empty-state" style="display:none; text-align:center; padding: 48px 0; color: var(--text-dim); font-size:14px;">
+      No decisions match the current filters.
+    </div>
+  </div>
+
+  <p class="dim" style="font-size:12px; margin-top:10px; text-align:right;">
+    Click any row to expand the AI debate transcript for that decision.
+  </p>
+
+  <!-- Flow continuation: the two advanced screens -->
+  <div class="row gap-16" style="margin-top:20px;">
+    <div class="col card inset" style="min-width:280px;">
+      <h3 style="font-size:14px;">Compete privately</h3>
+      <p class="mb-0" style="font-size:13px;">A strategy can stay sealed (commit-reveal) while this record stays public and verifiable.</p>
+      <a href="blackbox.html" class="btn btn-ghost btn-sm" style="margin-top:12px;">See a black-box agent →</a>
+    </div>
+    <div class="col card inset" style="min-width:280px;">
+      <h3 style="font-size:14px;">Improve over versions</h3>
+      <p class="mb-0" style="font-size:13px;">An AI coach suggests v→v+1 changes; lineage and gains are provable on-chain.</p>
+      <a href="versions.html" class="btn btn-ghost btn-sm" style="margin-top:12px;">See version lineage →</a>
+    </div>
+  </div>
+
+</main>
+
+<!-- Debate detail modal -->
+<div class="modal-backdrop" id="debate-modal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">Decision Detail</h2>
+      <button class="close" id="modal-close" aria-label="Close">&times;</button>
+    </div>
+
+    <dl class="modal-kv" id="modal-kv"></dl>
+    <hr class="divider">
+
+    <h3 style="margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim);">
+      AI Debate Transcript
+    </h3>
+    <div id="modal-debate"></div>
+
+    <hr class="divider">
+    <div class="flex items-center gap-12" style="flex-wrap:wrap;">
+      <a id="modal-tx-link" class="hash hash-link" href="#" target="_blank" rel="noopener" style="font-size:13px;"></a>
+      <a id="modal-thesis-link" class="hash hash-link" href="#" target="_blank" rel="noopener" style="font-size:13px; color: var(--text-dim);"></a>
+    </div>
+  </div>
+</div>
+
+<div class="disclaimer-bar">
+  <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+  <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var M = window.MOCK;
+
+  /* ── helpers ── */
+  function shortHash(h) {
+    if (!h) return "-";
+    var s = String(h);
+    if (s.length <= 18) return s;
+    return s.slice(0, 8) + "…" + s.slice(-6);
+  }
+
+  function fmtPct(v, withSign) {
+    if (v === 0 || v == null) return "-";
+    var sign = v > 0 ? "+" : "";
+    return (withSign ? sign : "") + v.toFixed(2) + "%";
+  }
+
+  /* agent index */
+  var agentMap = {};
+  M.agents.forEach(function (a) { agentMap[a.id] = a; });
+
+  /* populate contract label */
+  document.getElementById("contract-label").textContent =
+    "DecisionLog: " + shortHash(M.contracts.DecisionLog);
+
+  document.getElementById("window-label-inline").textContent =
+    M.window.label + " · " + M.window.symbol + " via " + M.window.venue;
+
+  var contractLink = document.getElementById("contract-link");
+  contractLink.href = M.explorer(M.contracts.DecisionLog);
+  contractLink.textContent = shortHash(M.contracts.DecisionLog);
+
+  /* ── Inject one synthetic "open" row to illustrate deferred settlement ── */
+  var syntheticOpen = {
+    agentId: "agt_aurora", bar: 1519, time: "2024-11-14 06:00 UTC",
+    intent: "OPEN", direction: "LONG", asset: "MNTUSDT", sizeMUSD: 1.0,
+    entry: 0.6720, sl: 0.6590, tp: 0.6940, leverage: 3, holdBars: 18,
+    predictedPct: 3.3,
+    riskVeto: { passed: true, reason: "Within 1.0 MUSD size cap and 3x leverage limit." },
+    outcomePct: null,
+    thesisHash: "0xf3a1e8...b02c", verdictHash: "0x8c40d7...2a61",
+    txHash: "0xc6b4a9f1e02d7348a1b5c8e90f4d23671ab08c5e3d9f27b4a1e06c5839d4f2b1",
+    settled: false,
+    _settlesIn: "~6 h",
+    debate: {
+      supporter: "MNT holding the 0.670 retest; volume picked up on the bounce, momentum still constructive heading into Asia open.",
+      discriminator: "Resistance cluster at 0.694 may prove stubborn; extended run warrants tighter size.",
+      judge: "Edge intact. Approve at standard 3x with stop at 0.659.",
+      verdict: "APPROVED"
+    }
+  };
+
+  var allDecisions = M.decisions.concat([syntheticOpen]);
+
+  /* ── Populate agent filter ── */
+  var agentSeen = {};
+  allDecisions.forEach(function (d) {
+    if (!agentSeen[d.agentId]) {
+      agentSeen[d.agentId] = true;
+      var a = agentMap[d.agentId];
+      var opt = document.createElement("option");
+      opt.value = d.agentId;
+      opt.textContent = a ? a.name : d.agentId;
+      document.getElementById("filter-agent").appendChild(opt);
+    }
+  });
+
+  /* ── Summary stats ── */
+  var totalDecisions  = allDecisions.length;
+  var settled         = allDecisions.filter(function (d) { return d.settled; });
+  var vetoed          = allDecisions.filter(function (d) { return !d.riskVeto.passed; });
+  var winners         = settled.filter(function (d) { return (d.outcomePct || 0) > 0; });
+  var statsRow = document.getElementById("stats-row");
+  var statsData = [
+    { label: "Total Decisions",  value: totalDecisions, sub: "incl. open" },
+    { label: "Settled",          value: settled.length, sub: "on-chain confirmed" },
+    { label: "Risk Vetoed",      value: vetoed.length,  sub: "blocked by risk guard" },
+    { label: "Win Rate (settled)", value: settled.length ? Math.round(winners.length / settled.length * 100) + "%" : "-", sub: "settled trades > 0%" }
+  ];
+  statsData.forEach(function (s) {
+    statsRow.innerHTML += '<div class="stat">' +
+      '<span class="stat-label">' + s.label + '</span>' +
+      '<span class="stat-value sm num">' + s.value + '</span>' +
+      '<span class="stat-sub">' + s.sub + '</span>' +
+      '</div>';
+  });
+
+  /* ── Render table ── */
+  function renderTable() {
+    var fAgent     = document.getElementById("filter-agent").value;
+    var fDirection = document.getElementById("filter-direction").value;
+    var fSettled   = document.getElementById("filter-settled").value;
+    var fVeto      = document.getElementById("filter-veto").value;
+
+    var rows = allDecisions.filter(function (d) {
+      if (fAgent     && d.agentId   !== fAgent)           return false;
+      if (fDirection && d.direction  !== fDirection)       return false;
+      if (fSettled === "settled" && !d.settled)            return false;
+      if (fSettled === "open"    &&  d.settled)            return false;
+      if (fVeto === "passed" && !d.riskVeto.passed)        return false;
+      if (fVeto === "vetoed" &&  d.riskVeto.passed)        return false;
+      return true;
+    });
+
+    var tbody = document.getElementById("decisions-tbody");
+    var empty = document.getElementById("empty-state");
+    tbody.innerHTML = "";
+
+    if (rows.length === 0) {
+      empty.style.display = "";
+    } else {
+      empty.style.display = "none";
+    }
+
+    document.getElementById("result-count").textContent =
+      rows.length + " decision" + (rows.length !== 1 ? "s" : "");
+
+    rows.forEach(function (d, i) {
+      var agent = agentMap[d.agentId];
+      var isPrivate = agent && agent.isPrivate;
+
+      /* direction */
+      var dirHtml = d.direction === "LONG"
+        ? '<span class="dir-long">▲ LONG</span>'
+        : '<span class="dir-short">▼ SHORT</span>';
+
+      /* predicted */
+      var predHtml = '<span class="num ' + (d.predictedPct >= 0 ? "up" : "down") + '">' +
+        fmtPct(d.predictedPct, true) + '</span>';
+
+      /* outcome */
+      var outcomeHtml;
+      if (!d.settled) {
+        outcomeHtml = '<span class="dim" style="font-size:12px;">Pending</span>';
+      } else if (d.outcomePct == null || d.outcomePct === 0 && !d.riskVeto.passed) {
+        outcomeHtml = '<span class="dim">-</span>';
+      } else {
+        var pct = d.outcomePct;
+        var barW = Math.min(Math.abs(pct) / 6 * 100, 100);
+        var barColor = pct >= 0 ? "var(--accent)" : "var(--baseline)";
+        outcomeHtml = '<div class="outcome-cell">' +
+          '<div class="outcome-bar-wrap"><div class="outcome-bar" style="width:' + barW + '%;background:' + barColor + ';"></div></div>' +
+          '<span class="num ' + (pct >= 0 ? "up" : "down") + '">' + fmtPct(pct, true) + '</span>' +
+          '</div>';
+      }
+
+      /* risk veto */
+      var vetoPassed = d.riskVeto.passed;
+      var vetoHtml = vetoPassed
+        ? '<span class="badge badge-up"><span class="dot"></span>PASSED</span>'
+        : '<span class="badge badge-down"><span class="dot"></span>VETOED</span>';
+
+      /* settled state */
+      var stateHtml;
+      if (!d.settled) {
+        stateHtml = '<span class="open-pill"><span class="dot"></span>open · settles in ' + (d._settlesIn || "soon") + '</span>';
+      } else {
+        stateHtml = '<span class="badge badge-up" style="font-size:10.5px;"><span class="dot"></span>Settled</span>';
+      }
+
+      /* tx hash */
+      var txHtml = d.txHash
+        ? '<a class="hash-link" href="' + M.explorer(d.txHash) + '" target="_blank" rel="noopener" title="' + d.txHash + '">' +
+            shortHash(d.txHash) +
+          '</a>'
+        : '<span class="dim">-</span>';
+
+      /* config hash */
+      var configHash = agent ? agent.configHash : null;
+      var cfgHtml = configHash
+        ? '<a class="hash-link" style="color:var(--text-dim);" href="' + M.explorer(configHash) + '" target="_blank" rel="noopener" title="' + configHash + '">' +
+            shortHash(configHash) +
+          '</a>'
+        : '<span class="dim">-</span>';
+
+      /* private badge on agent name */
+      var agentName = agent ? agent.name : d.agentId;
+      var agentBadge = isPrivate
+        ? ' <span class="badge badge-blackbox" style="font-size:10px;padding:2px 7px;vertical-align:middle;">Private</span>'
+        : '';
+
+      var tr = document.createElement("tr");
+      tr.className = "clickable";
+      tr.dataset.idx = String(i);
+      tr.innerHTML =
+        '<td class="num dim rank">' + (i + 1) + '</td>' +
+        '<td class="ts-cell">' + d.time + '</td>' +
+        '<td><div class="agent-name">' + agentName + agentBadge + '</div>' +
+            '<div class="agent-id">bar #' + d.bar + ' · ' + d.agentId + '</div></td>' +
+        '<td>' + dirHtml + '</td>' +
+        '<td><span class="tag">' + d.asset + '</span></td>' +
+        '<td class="right num">' + d.sizeMUSD.toFixed(1) + '</td>' +
+        '<td class="right">' + predHtml + '</td>' +
+        '<td class="right">' + outcomeHtml + '</td>' +
+        '<td class="veto-cell">' + vetoHtml + '</td>' +
+        '<td>' + stateHtml + '</td>' +
+        '<td>' + txHtml + '</td>' +
+        '<td>' + cfgHtml + '</td>';
+
+      /* click to open modal */
+      tr.addEventListener("click", function (e) {
+        if (e.target.tagName === "A") return; // let links work
+        openModal(d);
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Modal ── */
+  function openModal(d) {
+    var agent = agentMap[d.agentId];
+    var isPrivate = agent && agent.isPrivate;
+
+    document.getElementById("modal-title").textContent =
+      (agent ? agent.name : d.agentId) + " · " + d.direction + " · " + d.asset;
+
+    /* kv pairs */
+    var kv = document.getElementById("modal-kv");
+    var kvData = [
+      ["Time",         d.time],
+      ["Bar",          "#" + d.bar],
+      ["Intent",       d.intent],
+      ["Direction",    d.direction],
+      ["Size",         d.sizeMUSD.toFixed(1) + " mUSD"],
+      ["Entry",        d.entry],
+      ["Stop-Loss",    d.sl],
+      ["Take-Profit",  d.tp],
+      ["Leverage",     d.leverage + "x"],
+      ["Hold Bars",    d.holdBars],
+      ["Predicted",    fmtPct(d.predictedPct, true)],
+      ["Outcome",      d.settled
+        ? (d.outcomePct == null ? "-" : fmtPct(d.outcomePct, true))
+        : "Pending · settles in " + (d._settlesIn || "soon")],
+      ["Risk Veto",    d.riskVeto.passed ? "PASSED" : "VETOED"],
+      ["Veto Reason",  d.riskVeto.reason],
+      ["Settled",      d.settled ? "Yes" : "No"],
+    ];
+    kv.innerHTML = kvData.map(function (pair) {
+      return '<dt>' + pair[0] + '</dt><dd>' + pair[1] + '</dd>';
+    }).join("");
+
+    /* debate */
+    var debateEl = document.getElementById("modal-debate");
+    var db = d.debate;
+    function bubbleHtml(roleClass, labelClass, label, text) {
+      var isSealed = text && text.indexOf("[strategy private") === 0;
+      return '<div class="debate-bubble ' + roleClass + '">' +
+        '<div class="debate-role ' + labelClass + '">' + label + '</div>' +
+        (isSealed
+          ? '<span class="private-sealed">' + text + '</span>'
+          : '<span>' + text + '</span>') +
+        '</div>';
+    }
+    debateEl.innerHTML =
+      bubbleHtml("supporter",     "supporter-role",     "Supporter",     db.supporter) +
+      bubbleHtml("discriminator", "discriminator-role", "Discriminator", db.discriminator) +
+      bubbleHtml("judge",         "judge-role",         "Judge",         db.judge) +
+      '<div class="flex items-center gap-8" style="margin-top:8px;">' +
+        '<span class="dim" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;">Verdict</span>' +
+        (db.verdict === "APPROVED"
+          ? '<span class="verdict-approved">✓ APPROVED</span>'
+          : '<span class="verdict-vetoed">✗ VETOED</span>') +
+      '</div>';
+
+    /* links */
+    var txLink = document.getElementById("modal-tx-link");
+    txLink.href = M.explorer(d.txHash);
+    txLink.textContent = "Tx: " + shortHash(d.txHash);
+
+    var thesisLink = document.getElementById("modal-thesis-link");
+    thesisLink.href = M.explorer(d.thesisHash);
+    thesisLink.textContent = "Thesis: " + d.thesisHash + " · Verdict: " + d.verdictHash;
+
+    document.getElementById("debate-modal").removeAttribute("hidden");
+  }
+
+  document.getElementById("modal-close").addEventListener("click", function () {
+    document.getElementById("debate-modal").setAttribute("hidden", "");
+  });
+  document.getElementById("debate-modal").addEventListener("click", function (e) {
+    if (e.target === this) this.setAttribute("hidden", "");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") document.getElementById("debate-modal").setAttribute("hidden", "");
+  });
+
+  /* ── Wire filters ── */
+  ["filter-agent", "filter-direction", "filter-settled", "filter-veto"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", renderTable);
+  });
+
+  renderTable();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Arena</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="brand" href="index.html">
+    <span class="logo-dot"></span>
+    Autonoe <small>Agent Arena</small>
+  </a>
+  <a class="nav-link active" href="index.html">Arena</a>
+  <a class="nav-link" href="builder.html">Build</a>
+  <a class="nav-link" href="backtest.html">Backtest</a>
+  <a class="nav-link" href="receipt.html">Receipt</a>
+  <a class="nav-link" href="execute.html">Execute</a>
+  <a class="nav-link" href="history.html">History</a>
+  <a class="nav-link" href="blackbox.html">Black-box</a>
+  <a class="nav-link" href="versions.html">Versions</a>
+  <span class="nav-spacer"></span>
+  <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+</nav>
+
+<main class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">Agent Arena · Leaderboard</div>
+    <h1>Who's <span class="accent-line">actually</span> outperforming?</h1>
+    <p class="tagline">Every agent decision is logged on-chain. Results are verifiable against a fixed, disclosed backtest window - no cherry-picking, no survivorship bias.</p>
+    <div class="flex items-center justify-between" style="max-width:640px;margin:0 auto;gap:12px;flex-wrap:wrap;">
+      <div class="flex items-center gap-12">
+        <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+        <span class="muted" style="font-size:13px;">Mantle Sepolia · <span class="mono" id="hero-chain-id"></span></span>
+      </div>
+      <a href="builder.html" class="btn btn-primary btn-lg">Build your agent →</a>
+    </div>
+  </div>
+
+  <!-- Backtest window banner -->
+  <div class="card flat" id="window-banner" style="margin-bottom:20px;border-color:var(--accent-dim);background:linear-gradient(90deg,rgba(40,224,160,.06) 0%,transparent 60%);">
+    <div class="flex items-center justify-between gap-16" style="flex-wrap:wrap;">
+      <div class="flex items-center gap-16" style="flex-wrap:wrap;">
+        <div>
+          <div class="stat-label" style="margin-bottom:4px;">Disclosed Backtest Window</div>
+          <div class="mono" style="font-size:15px;font-weight:600;color:var(--text);" id="window-label"></div>
+          <div class="dim" style="font-size:12px;margin-top:2px;" id="window-note"></div>
+        </div>
+        <div class="divider" style="width:1px;height:40px;margin:0;background:var(--border);"></div>
+        <div>
+          <div class="stat-label" style="margin-bottom:4px;">Pair · Venue</div>
+          <div class="mono" style="font-size:15px;font-weight:600;color:var(--text);" id="window-pair"></div>
+        </div>
+        <div class="divider" style="width:1px;height:40px;margin:0;background:var(--border);"></div>
+        <div>
+          <div class="stat-label" style="margin-bottom:4px;">Bars</div>
+          <div class="mono" style="font-size:15px;font-weight:600;color:var(--text);" id="window-bars"></div>
+        </div>
+        <div class="divider" style="width:1px;height:40px;margin:0;background:var(--border);"></div>
+        <div>
+          <div class="stat-label" style="margin-bottom:4px;">Buy-&-Hold Baseline</div>
+          <div class="num up" style="font-size:15px;font-weight:600;" id="window-baseline"></div>
+        </div>
+      </div>
+      <div class="flex gap-8">
+        <span class="tag">Fixed · Frozen</span>
+        <span class="tag">Out-of-Sample</span>
+        <span class="tag">On-Chain Log</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stat bar -->
+  <div class="grid grid-4" id="summary-stats" style="margin-bottom:24px;">
+    <div class="stat">
+      <span class="stat-label">Agents Competing</span>
+      <span class="stat-value" id="stat-agents">-</span>
+      <span class="stat-sub">across all strategies</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Top Return</span>
+      <span class="stat-value up" id="stat-top-return">-</span>
+      <span class="stat-sub" id="stat-top-name">-</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Avg vs Baseline</span>
+      <span class="stat-value" id="stat-avg-vs-baseline">-</span>
+      <span class="stat-sub">median agent alpha</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Total Trades Logged</span>
+      <span class="stat-value" id="stat-total-trades">-</span>
+      <span class="stat-sub">decisions on-chain</span>
+    </div>
+  </div>
+
+  <!-- Equity curve mini-chart -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-head">
+      <div>
+        <h3>Leading Equity Curve</h3>
+        <div class="card-title-sub">Aurora-Momentum v3 vs buy-&-hold baseline - normalized to 100</div>
+      </div>
+      <span class="badge badge-up"><span class="dot"></span>Backtest</span>
+    </div>
+    <svg class="equity-svg" viewBox="0 0 700 140" id="equity-chart" preserveAspectRatio="none" style="height:140px;">
+      <defs>
+        <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#28e0a0" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#28e0a0" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- grid lines rendered by JS -->
+      <g id="chart-grid"></g>
+      <g id="chart-axes"></g>
+      <path id="chart-area-ai" class="area-ai"/>
+      <path id="chart-line-baseline" class="line-baseline"/>
+      <path id="chart-line-ai" class="line-ai"/>
+    </svg>
+    <div class="chart-legend">
+      <span><span class="swatch ai"></span>AI Agent (Aurora-Momentum v3)</span>
+      <span><span class="swatch baseline"></span>Buy &amp; Hold Baseline</span>
+    </div>
+  </div>
+
+  <!-- Leaderboard table -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-head">
+      <div>
+        <h2>Agent Leaderboard</h2>
+        <div class="card-title-sub">Ranked by net return · same frozen window for all agents</div>
+      </div>
+      <div class="flex gap-8 items-center">
+        <div class="seg" id="sort-seg">
+          <button class="active" data-sort="netReturnPct">Return</button>
+          <button data-sort="winRatePct">Win Rate</button>
+          <button data-sort="profitFactor">Profit Factor</button>
+        </div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="table" id="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th>Agent</th>
+            <th>Owner</th>
+            <th class="right">Net Return</th>
+            <th class="right">vs Baseline</th>
+            <th class="right">Win Rate</th>
+            <th class="right">Profit Factor</th>
+            <th class="right">Trades</th>
+            <th class="right">Grade</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CTA + contract info row -->
+  <div class="row gap-16" style="margin-bottom:8px;">
+    <div class="col card" style="min-width:280px;">
+      <h3>Build your own agent</h3>
+      <p>Configure strategy rules, risk limits, and leverage. Run it against the same frozen window. Your results are immediately comparable.</p>
+      <a href="builder.html" class="btn btn-primary">Open Agent Builder →</a>
+    </div>
+    <div class="col card inset" style="min-width:280px;">
+      <h3 class="muted" style="font-size:14px;font-weight:650;text-transform:uppercase;letter-spacing:.04em;">On-Chain Contracts</h3>
+      <hr class="divider">
+      <dl class="kv" id="contracts-kv" style="row-gap:10px;"></dl>
+    </div>
+  </div>
+
+</main>
+
+<div class="disclaimer-bar">
+  <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+  <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var M = window.MOCK;
+
+  /* --- Helpers --- */
+  function pct(n, places) {
+    places = places == null ? 1 : places;
+    return (n >= 0 ? "+" : "") + n.toFixed(places) + "%";
+  }
+  function gradeLabel(g) {
+    return g.charAt(0).toUpperCase() + g.slice(1);
+  }
+  function shortAddr(a) {
+    return a.slice(0, 6) + "…" + a.slice(-4);
+  }
+
+  /* --- Hero / chain id --- */
+  document.getElementById("hero-chain-id").textContent = M.contracts.chain + " (" + M.contracts.chainId + ")";
+
+  /* --- Backtest window banner --- */
+  document.getElementById("window-label").textContent = M.window.label;
+  document.getElementById("window-note").textContent = M.window.note;
+  document.getElementById("window-pair").textContent = M.window.venue + " · " + M.window.symbol;
+  document.getElementById("window-bars").textContent = M.window.bars.toLocaleString() + " bars";
+  document.getElementById("window-baseline").textContent = pct(M.baselineReturnPct);
+
+  /* --- Summary stats --- */
+  var sorted = M.agents.slice().sort(function (a, b) { return b.netReturnPct - a.netReturnPct; });
+  var totalTrades = M.agents.reduce(function (s, a) { return s + a.trades; }, 0);
+  var avgReturn = M.agents.reduce(function (s, a) { return s + a.netReturnPct; }, 0) / M.agents.length;
+  var avgVsBaseline = avgReturn - M.baselineReturnPct;
+  var top = sorted[0];
+  document.getElementById("stat-agents").textContent = M.agents.length;
+  document.getElementById("stat-top-return").textContent = "+" + top.netReturnPct.toFixed(1) + "%";
+  document.getElementById("stat-top-name").textContent = top.name;
+  document.getElementById("stat-avg-vs-baseline").textContent = (avgVsBaseline >= 0 ? "+" : "") + avgVsBaseline.toFixed(1) + "% avg alpha";
+  document.getElementById("stat-total-trades").textContent = totalTrades.toLocaleString();
+
+  /* --- Equity chart --- */
+  (function () {
+    var ai = M.aiEquity;
+    var bl = M.baselineEquity;
+    var n = ai.length;
+    var W = 700, H = 140, padL = 40, padR = 12, padT = 8, padB = 22;
+    var allVals = ai.concat(bl);
+    var minV = Math.min.apply(null, allVals), maxV = Math.max.apply(null, allVals);
+    var span = maxV - minV || 1;
+
+    function xOf(i)  { return padL + (i / (n - 1)) * (W - padL - padR); }
+    function yOf(v)  { return padT + (1 - (v - minV) / span) * (H - padT - padB); }
+
+    /* grid lines */
+    var gridG = document.getElementById("chart-grid");
+    var gridLines = [minV, minV + span * 0.25, minV + span * 0.5, minV + span * 0.75, maxV];
+    gridLines.forEach(function (v) {
+      var y = yOf(v).toFixed(1);
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("class", "grid-line");
+      line.setAttribute("x1", padL); line.setAttribute("x2", W - padR);
+      line.setAttribute("y1", y);    line.setAttribute("y2", y);
+      gridG.appendChild(line);
+    });
+
+    /* axis labels */
+    var axesG = document.getElementById("chart-axes");
+    [minV, minV + span * 0.5, maxV].forEach(function (v) {
+      var y = yOf(v);
+      var txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("class", "axis-label");
+      txt.setAttribute("x", padL - 4);
+      txt.setAttribute("y", (y + 4).toFixed(1));
+      txt.setAttribute("text-anchor", "end");
+      txt.textContent = v.toFixed(0);
+      axesG.appendChild(txt);
+    });
+
+    /* build path string */
+    function pathD(data) {
+      return data.map(function (v, i) {
+        return (i === 0 ? "M" : "L") + xOf(i).toFixed(1) + "," + yOf(v).toFixed(1);
+      }).join(" ");
+    }
+
+    var aiD = pathD(ai);
+    var blD = pathD(bl);
+
+    document.getElementById("chart-line-ai").setAttribute("d", aiD);
+    document.getElementById("chart-line-baseline").setAttribute("d", blD);
+
+    /* area: close the path back along the bottom */
+    var areaD = aiD +
+      " L" + xOf(n - 1).toFixed(1) + "," + (H - padB) +
+      " L" + xOf(0).toFixed(1) + "," + (H - padB) + " Z";
+    document.getElementById("chart-area-ai").setAttribute("d", areaD);
+  })();
+
+  /* --- Leaderboard table --- */
+  var currentSort = "netReturnPct";
+
+  function renderTable(sortKey) {
+    var rows = M.agents.slice().sort(function (a, b) { return b[sortKey] - a[sortKey]; });
+    var tbody = document.getElementById("leaderboard-body");
+    tbody.innerHTML = "";
+
+    rows.forEach(function (agent, i) {
+      var rank = i + 1;
+      var delta = agent.netReturnPct - agent.baselineReturnPct;
+      var deltaClass = delta >= 0 ? "up" : "down";
+      var isPrimary = agent.id === M.primaryAgentId;
+
+      var tr = document.createElement("tr");
+      tr.className = "clickable" + (isPrimary ? " you" : "");
+      tr.setAttribute("title", "View agent details");
+
+      /* Navigate to backtest for primary agent, receipt otherwise */
+      var href = agent.id === M.primaryAgentId ? "backtest.html" : "receipt.html";
+      tr.addEventListener("click", function () { window.location.href = href; });
+
+      /* rank */
+      var tdRank = document.createElement("td");
+      tdRank.innerHTML = '<span class="rank num">' + rank + '</span>';
+      tr.appendChild(tdRank);
+
+      /* name */
+      var tdName = document.createElement("td");
+      var nameHTML = '<a href="' + href + '" style="color:var(--text);font-weight:600;" onclick="event.stopPropagation()">' + agent.name + '</a>';
+      if (agent.isPrivate) {
+        nameHTML += ' <span class="badge badge-blackbox" style="margin-left:6px;">Black-box</span>';
+      }
+      if (rank === 1) {
+        nameHTML += ' <span class="badge badge-up" style="margin-left:4px;">Champion</span>';
+      }
+      nameHTML += '<div style="font-size:11.5px;color:var(--text-dim);margin-top:3px;">v' + agent.version + (agent.parentId ? ' · lineage' : ' · genesis') + '</div>';
+      tdName.innerHTML = nameHTML;
+      tr.appendChild(tdName);
+
+      /* owner */
+      var tdOwner = document.createElement("td");
+      tdOwner.innerHTML = '<a href="' + M.explorer(agent.owner) + '" target="_blank" class="hash addr" title="' + agent.owner + '" onclick="event.stopPropagation()">' + shortAddr(agent.owner) + '</a>';
+      tr.appendChild(tdOwner);
+
+      /* net return */
+      var tdReturn = document.createElement("td");
+      tdReturn.className = "right";
+      tdReturn.innerHTML = '<span class="num ' + (agent.netReturnPct >= 0 ? "up" : "down") + '" style="font-size:15px;font-weight:700;">' + pct(agent.netReturnPct) + '</span>';
+      tr.appendChild(tdReturn);
+
+      /* vs baseline delta */
+      var tdDelta = document.createElement("td");
+      tdDelta.className = "right";
+      tdDelta.innerHTML = '<span class="num ' + deltaClass + '">' + pct(delta) + '</span>';
+      tr.appendChild(tdDelta);
+
+      /* win rate */
+      var tdWin = document.createElement("td");
+      tdWin.className = "right";
+      tdWin.innerHTML = '<span class="num">' + agent.winRatePct.toFixed(1) + '%</span>';
+      tr.appendChild(tdWin);
+
+      /* profit factor */
+      var tdPF = document.createElement("td");
+      tdPF.className = "right";
+      tdPF.innerHTML = '<span class="num ' + (agent.profitFactor >= 1 ? "up" : "down") + '">' + agent.profitFactor.toFixed(2) + '</span>';
+      tr.appendChild(tdPF);
+
+      /* trades */
+      var tdTrades = document.createElement("td");
+      tdTrades.className = "right";
+      tdTrades.innerHTML = '<span class="num muted">' + agent.trades + '</span>';
+      tr.appendChild(tdTrades);
+
+      /* grade */
+      var tdGrade = document.createElement("td");
+      tdGrade.className = "right";
+      tdGrade.innerHTML = '<span class="grade grade-' + agent.grade + '">' + gradeLabel(agent.grade) + '</span>';
+      tr.appendChild(tdGrade);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  renderTable(currentSort);
+
+  /* seg control */
+  document.getElementById("sort-seg").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-sort]");
+    if (!btn) return;
+    document.querySelectorAll("#sort-seg button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    currentSort = btn.getAttribute("data-sort");
+    renderTable(currentSort);
+  });
+
+  /* --- Contracts KV --- */
+  var kv = document.getElementById("contracts-kv");
+  function addKV(label, html) {
+    var dt = document.createElement("dt"); dt.textContent = label; kv.appendChild(dt);
+    var dd = document.createElement("dd"); dd.innerHTML = html; kv.appendChild(dd);
+  }
+  addKV("Chain", '<span class="mono">' + M.contracts.chain + ' (' + M.contracts.chainId + ')</span>');
+  addKV("DecisionLog", '<a href="' + M.explorer(M.contracts.DecisionLog) + '" target="_blank" class="hash">' + M.contracts.DecisionLog.slice(0, 10) + '…' + M.contracts.DecisionLog.slice(-6) + '</a>');
+  addKV("AgentRegistry", '<a href="' + M.explorer(M.contracts.AgentRegistry) + '" target="_blank" class="hash">' + M.contracts.AgentRegistry.slice(0, 10) + '…' + M.contracts.AgentRegistry.slice(-6) + '</a>');
+  addKV("Explorer", '<a href="' + M.contracts.explorerBase + '" target="_blank" class="hash" style="font-size:12px;">' + M.contracts.explorerBase + '</a>');
+
+})();
+</script>
+
+</body>
+</html>

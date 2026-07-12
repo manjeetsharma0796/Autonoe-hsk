@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Versions</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ---- Page-local styles (no new visual primitives) ---- */
+
+    /* Lineage column */
+    .lineage-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Version card */
+    .version-card {
+      position: relative;
+      padding: 18px 20px;
+      background: linear-gradient(180deg, var(--bg-elev) 0%, var(--bg-elev-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .version-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 8px 28px rgba(0,0,0,.55);
+    }
+    .version-card.current {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 1px var(--accent-dim), var(--shadow);
+    }
+
+    /* Connector arrow between version cards */
+    .lineage-connector {
+      display: flex;
+      align-items: center;
+      padding: 2px 0 2px 28px;
+      gap: 0;
+    }
+    .lineage-connector-line {
+      width: 2px;
+      height: 36px;
+      background: linear-gradient(180deg, var(--border-strong) 0%, var(--accent-dim) 100%);
+      border-radius: 1px;
+      margin-left: 14px;
+    }
+    .lineage-connector-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-left: 14px;
+    }
+    .conn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-left: 20px;
+    }
+    .conn-line {
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--border-strong), var(--accent-dim));
+      border-radius: 1px;
+      margin: 4px 0;
+    }
+    .conn-diff {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px 5px 6px;
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 10px;
+    }
+    .conn-diff .diff-arrow {
+      color: var(--accent-dim);
+      font-size: 14px;
+      line-height: 1;
+    }
+    .conn-diff code {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-dim);
+      background: var(--bg-elev-2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+    .conn-diff .delta {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Version card header row */
+    .vcard-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .vcard-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .vcard-version-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-inset);
+      border: 1px solid var(--border-strong);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .version-card.current .vcard-version-badge {
+      background: var(--accent-soft);
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* Mini bar chart for per-version return vs baseline */
+    .return-bar-wrap {
+      margin: 10px 0 0;
+    }
+    .return-bar-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
+    .return-bar-track {
+      height: 8px;
+      background: var(--bg-inset);
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      overflow: visible;
+      position: relative;
+    }
+    .return-bar-baseline {
+      position: absolute;
+      top: 0; bottom: 0;
+      background: var(--baseline-soft);
+      border-radius: 4px 0 0 4px;
+      border-right: 1.5px dashed var(--baseline);
+    }
+    .return-bar-ai {
+      position: absolute;
+      top: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+      border-radius: 4px;
+      opacity: .8;
+    }
+
+    /* Stats row inside version card */
+    .vcard-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .vcard-stat {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+    .vcard-stat .s-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .vcard-stat .s-val {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Coach card */
+    .coach-card {
+      background: linear-gradient(180deg, var(--bg-elev) 0%, var(--bg-elev-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Suggestion row */
+    .suggestion-row {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: background .12s;
+    }
+    .suggestion-row:last-of-type {
+      border-bottom: none;
+    }
+    .suggestion-row:hover {
+      background: var(--surface-hover);
+    }
+    .suggestion-row-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .suggestion-target {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .suggestion-delta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .suggestion-text {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .suggestion-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Honesty note */
+    .honesty-note {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--warn-soft);
+      border: 1px solid rgba(245,177,76,.25);
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin: 0 18px 16px;
+    }
+    .honesty-note .hn-icon {
+      font-size: 15px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      color: var(--warn);
+    }
+    .honesty-note strong {
+      color: var(--warn);
+    }
+
+    /* Diff view */
+    .diff-view {
+      margin: 0 18px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .diff-view-head {
+      padding: 8px 12px;
+      background: var(--bg-inset);
+      border-bottom: 1px solid var(--border);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .diff-lines {
+      padding: 10px 0;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+    .diff-line {
+      display: flex;
+      gap: 0;
+      padding: 3px 12px;
+      line-height: 1.6;
+    }
+    .diff-line.removed { background: var(--baseline-soft); color: var(--baseline); }
+    .diff-line.added   { background: var(--accent-soft);   color: var(--accent); }
+    .diff-line.context { color: var(--text-dim); }
+    .diff-sign {
+      width: 16px;
+      flex-shrink: 0;
+      font-weight: 700;
+      opacity: .8;
+    }
+
+    /* Page layout */
+    .versions-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .versions-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Coach header */
+    .coach-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Spawned toast */
+    .spawn-toast {
+      position: fixed;
+      bottom: 68px;
+      right: 24px;
+      z-index: 90;
+      background: var(--bg-elev);
+      border: 1px solid var(--accent-dim);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      max-width: 340px;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+    }
+    .spawn-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .spawn-toast .toast-icon {
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .spawn-toast strong { color: var(--accent); display: block; margin-bottom: 2px; }
+    .spawn-toast .dismiss-toast {
+      margin-left: auto;
+      background: transparent;
+      border: 0;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+      padding: 0 0 0 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="brand" href="index.html">
+    <span class="logo-dot"></span>
+    Autonoe <small>Agent Arena</small>
+  </a>
+  <a class="nav-link" href="index.html">Arena</a>
+  <a class="nav-link" href="builder.html">Build</a>
+  <a class="nav-link" href="backtest.html">Backtest</a>
+  <a class="nav-link" href="receipt.html">Receipt</a>
+  <a class="nav-link" href="execute.html">Execute</a>
+  <a class="nav-link" href="history.html">History</a>
+  <a class="nav-link" href="blackbox.html">Black-box</a>
+  <a class="nav-link active" href="versions.html">Versions</a>
+  <span class="nav-spacer"></span>
+  <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+</nav>
+
+<main class="container">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between gap-12" style="margin-bottom:22px;">
+    <div>
+      <div class="eyebrow">Agent Enhancement</div>
+      <h1 id="page-title" style="margin-bottom:4px;">Version Lineage &amp; AI Coach</h1>
+      <p style="margin:0;" class="muted" id="page-sub">Provable on-chain improvement across backtested versions · Aurora-Momentum</p>
+    </div>
+    <div class="flex items-center gap-8">
+      <span class="badge badge-up"><span class="dot"></span>3 Versions</span>
+      <span class="badge badge-real" id="chain-badge">Mantle Sepolia</span>
+      <a class="btn btn-ghost btn-sm" href="backtest.html">View current backtest →</a>
+    </div>
+  </div>
+
+  <!-- Summary stat strip -->
+  <div class="grid grid-4 gap-16" style="margin-bottom:24px;" id="stat-strip">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="versions-layout" id="main-layout">
+
+    <!-- LEFT: Lineage column -->
+    <div>
+      <div class="flex items-center justify-between gap-12" style="margin-bottom:14px;">
+        <h3 style="margin:0;">Version Lineage</h3>
+        <span class="tag">Frozen out-of-sample window</span>
+      </div>
+      <div class="lineage-column" id="lineage-col">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT: AI Coach -->
+    <div>
+      <div class="flex items-center justify-between gap-12" style="margin-bottom:14px;">
+        <h3 style="margin:0;">AI Coach Suggestions</h3>
+        <span class="tag">for v<span id="next-ver">4</span></span>
+      </div>
+      <div class="coach-card" id="coach-card">
+
+        <div class="coach-header">
+          <div class="flex items-center gap-8" style="margin-bottom:8px;">
+            <span style="font-size:18px;">&#x1F9E0;</span>
+            <span style="font-size:14px; font-weight:600; color:var(--text);">Improvement Opportunities</span>
+          </div>
+          <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.5;">
+            Coach analyzed <strong id="coach-agent-name" style="color:var(--text);">Aurora-Momentum v3</strong> across <span id="coach-trades">91</span> trades.
+            Each suggestion is validated on a <strong style="color:var(--warn);">held-out out-of-sample window</strong>
+            not seen during optimization - preventing overfitting.
+          </p>
+        </div>
+
+        <!-- Honesty note -->
+        <div class="honesty-note" style="margin-top:16px;">
+          <span class="hn-icon">&#9888;&#65039;</span>
+          <span>
+            <strong>Anti-overfitting guarantee.</strong>
+            All expected delta figures are estimated on a separate held-out period (Dec 2024 – Jan 2025), withheld from the optimizer.
+            Past in-sample gains do not guarantee future out-of-sample performance.
+          </span>
+        </div>
+
+        <!-- Diff view: v1 → v2 changes -->
+        <div class="diff-view">
+          <div class="diff-view-head">
+            <span>Config diff - v1 &#x2192; v2</span>
+            <span class="badge" style="font-size:10px;">Aurora-Momentum</span>
+          </div>
+          <div class="diff-lines">
+            <div class="diff-line context"><span class="diff-sign"> </span>strategy: momentum_breakout</div>
+            <div class="diff-line removed"><span class="diff-sign">-</span>stop_loss_pct: 5.0</div>
+            <div class="diff-line added"><span class="diff-sign">+</span>stop_loss_pct: 3.0  # ATR-scaled</div>
+            <div class="diff-line removed"><span class="diff-sign">-</span>volume_filter: false</div>
+            <div class="diff-line added"><span class="diff-sign">+</span>volume_filter: true   # &gt; 20-bar mean</div>
+            <div class="diff-line added"><span class="diff-sign">+</span>subagent_news: enabled # News subagent</div>
+            <div class="diff-line context"><span class="diff-sign"> </span>leverage_max: 3</div>
+          </div>
+        </div>
+
+        <!-- Diff view: v2 → v3 changes -->
+        <div class="diff-view" style="margin-top:0; margin-bottom:16px;">
+          <div class="diff-view-head">
+            <span>Config diff - v2 &#x2192; v3</span>
+            <span class="badge" style="font-size:10px;">Aurora-Momentum</span>
+          </div>
+          <div class="diff-lines">
+            <div class="diff-line context"><span class="diff-sign"> </span>volume_filter: true</div>
+            <div class="diff-line removed"><span class="diff-sign">-</span>trailing_stop: false</div>
+            <div class="diff-line added"><span class="diff-sign">+</span>trailing_stop: true   # BE at +1.5%</div>
+            <div class="diff-line removed"><span class="diff-sign">-</span>vol_scaling: false</div>
+            <div class="diff-line added"><span class="diff-sign">+</span>vol_scaling: true     # -40% at p80 vol</div>
+            <div class="diff-line context"><span class="diff-sign"> </span>subagent_news: enabled</div>
+          </div>
+        </div>
+
+        <!-- Suggestions list -->
+        <div class="divider" style="margin:0 0 0;"></div>
+        <div id="suggestions-list">
+          <!-- filled by JS -->
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /versions-layout -->
+
+</main>
+
+<!-- DISCLAIMER BAR -->
+<div class="disclaimer-bar">
+  <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+  <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+</div>
+
+<!-- Spawn toast -->
+<div class="spawn-toast" id="spawn-toast">
+  <span class="toast-icon">&#x26A1;</span>
+  <div>
+    <strong>New backtest spawned</strong>
+    <span id="toast-msg">Applying suggestion and re-running out-of-sample validation…</span>
+  </div>
+  <button class="dismiss-toast" onclick="dismissToast()">&#x2715;</button>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var M = window.MOCK;
+
+  /* ---- Helpers ---- */
+  function pct(v, digits) {
+    digits = digits == null ? 1 : digits;
+    var s = (v >= 0 ? "+" : "") + v.toFixed(digits) + "%";
+    return s;
+  }
+  function gradeLabel(g) {
+    var map = { excellent: "A", good: "B", fair: "C", poor: "D" };
+    return map[g] || g;
+  }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  /* ---- Stat strip ---- */
+  var current = M.versions[M.versions.length - 1];
+  var v1 = M.versions[0];
+  var totalGain = current.netReturnPct - v1.netReturnPct;
+  var baselineRet = M.baselineReturnPct;
+
+  var stats = [
+    { label: "Current Net Return", value: pct(current.netReturnPct), cls: "up", sub: "v" + current.version + " champion" },
+    { label: "vs Baseline", value: pct(current.netReturnPct - baselineRet), cls: "up", sub: "Buy-&-hold: " + pct(baselineRet) },
+    { label: "Gain across versions", value: pct(totalGain), cls: "up", sub: "v1 → v" + current.version },
+    { label: "Win Rate (v" + current.version + ")", value: current.winRatePct.toFixed(1) + "%", cls: "", sub: "Profit factor " + current.profitFactor.toFixed(2) }
+  ];
+
+  var strip = document.getElementById("stat-strip");
+  stats.forEach(function (s) {
+    var el = document.createElement("div");
+    el.className = "stat";
+    el.innerHTML = '<div class="stat-label">' + s.label + '</div>' +
+      '<div class="stat-value' + (s.cls ? ' ' + s.cls : '') + '">' + s.value + '</div>' +
+      '<div class="stat-sub">' + s.sub + '</div>';
+    strip.appendChild(el);
+  });
+
+  /* ---- Mini return bar chart ---- */
+  function buildReturnBar(netRet, baselineRet) {
+    var maxPct = 30; // axis max
+    var bPct = clamp(baselineRet / maxPct * 100, 0, 100);
+    var aPct = clamp(netRet / maxPct * 100, 0, 100);
+
+    return '<div class="return-bar-wrap">' +
+      '<div class="return-bar-label-row">' +
+        '<span class="muted">0%</span>' +
+        '<span class="up">' + pct(netRet) + '</span>' +
+        '<span class="dim">' + maxPct + '%</span>' +
+      '</div>' +
+      '<div class="return-bar-track">' +
+        '<div class="return-bar-baseline" style="width:' + bPct + '%"></div>' +
+        '<div class="return-bar-ai" style="width:' + aPct + '%"></div>' +
+      '</div>' +
+      '<div class="return-bar-label-row" style="margin-top:4px;">' +
+        '<span><span style="display:inline-block;width:10px;height:2px;background:var(--accent);vertical-align:middle;border-radius:1px;margin-right:4px;"></span><span class="dim">AI</span></span>' +
+        '<span><span style="display:inline-block;width:10px;height:2px;background:var(--baseline);vertical-align:middle;border-radius:1px;margin-right:4px;border-top:1.5px dashed var(--baseline);"></span><span class="dim">Baseline ' + pct(baselineRet) + '</span></span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---- Version card ---- */
+  function buildVersionCard(v, isCurrent) {
+    var gradeClass = "grade grade-" + v.grade;
+    var connectorMeta = null;
+
+    // find diff meta
+    if (v.version === 2) {
+      connectorMeta = {
+        label: "v1 &#x2192; v2",
+        items: [
+          { removed: "stop_loss 5%", added: "stop_loss 3% ATR" },
+          { added: "Volume filter + News subagent" }
+        ],
+        delta: "+8.2%"
+      };
+    } else if (v.version === 3) {
+      connectorMeta = {
+        label: "v2 &#x2192; v3",
+        items: [
+          { added: "Trailing stop to BE at +1.5%" },
+          { added: "Vol-scaled sizing at p80" }
+        ],
+        delta: "+7.4%"
+      };
+    }
+
+    var card = '<div class="version-card' + (isCurrent ? " current" : "") + '">' +
+      '<div class="vcard-head">' +
+        '<div class="vcard-title">' +
+          '<div class="vcard-version-badge">v' + v.version + '</div>' +
+          '<div>' +
+            '<div style="font-size:15px; font-weight:650; line-height:1.2;">' + v.label + '</div>' +
+            '<div class="dim" style="font-size:12px; margin-top:2px; font-family:var(--font-mono);">' +
+              '<a href="' + M.explorer(v.configHash) + '" target="_blank" class="hash" style="font-size:12px;">' + v.configHash + '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="flex items-center gap-8">' +
+          (isCurrent ? '<span class="badge badge-up"><span class="dot"></span>Current</span>' : '') +
+          '<span class="' + gradeClass + '">' + gradeLabel(v.grade) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<p style="margin:0 0 10px; font-size:13px; color:var(--text-dim); line-height:1.4;">' + v.note + '</p>' +
+      buildReturnBar(v.netReturnPct, baselineRet) +
+      '<div class="vcard-stats">' +
+        '<div class="vcard-stat">' +
+          '<div class="s-label">Net Ret.</div>' +
+          '<div class="s-val' + (v.netReturnPct >= 0 ? " up" : " down") + '">' + pct(v.netReturnPct) + '</div>' +
+        '</div>' +
+        '<div class="vcard-stat">' +
+          '<div class="s-label">Win Rate</div>' +
+          '<div class="s-val">' + v.winRatePct.toFixed(1) + '%</div>' +
+        '</div>' +
+        '<div class="vcard-stat">' +
+          '<div class="s-label">Prof. Factor</div>' +
+          '<div class="s-val">' + v.profitFactor.toFixed(2) + '</div>' +
+        '</div>' +
+        '<div class="vcard-stat">' +
+          '<div class="s-label">Trades</div>' +
+          '<div class="s-val">' + v.trades + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    return { card: card, connectorMeta: connectorMeta };
+  }
+
+  /* ---- Build lineage ---- */
+  var col = document.getElementById("lineage-col");
+  var html = "";
+
+  M.versions.forEach(function (v, idx) {
+    var isCurrent = (v.id === M.primaryAgentId);
+    var built = buildVersionCard(v, isCurrent);
+    html += built.card;
+
+    // If next version exists, render connector + diff pill
+    if (idx < M.versions.length - 1) {
+      var nextV = M.versions[idx + 1];
+      var deltaRet = nextV.netReturnPct - v.netReturnPct;
+
+      html += '<div class="conn-wrap">' +
+        '<div class="conn-line"></div>' +
+        '<div class="conn-diff">' +
+          '<span class="diff-arrow">&#x2193;</span>' +
+          '<span style="font-size:12px; color:var(--text-muted);">v' + v.version + ' &#x2192; v' + nextV.version + '</span>' +
+          '<span class="delta">' + pct(deltaRet) + ' ret.</span>' +
+          '<code>' + (idx === 0
+            ? 'stop_loss 5%→3%, +vol_filter, +news_agent'
+            : 'trailing_stop=BE, +vol_scaling') +
+          '</code>' +
+        '</div>' +
+        '<div class="conn-line"></div>' +
+      '</div>';
+    }
+  });
+
+  // On-chain registry note
+  html += '<div class="card flat inset" style="margin-top:16px; padding:14px 16px;">' +
+    '<div class="flex items-center gap-8" style="margin-bottom:8px;">' +
+      '<span style="font-size:14px; color:var(--info);">&#x26D3;&#xFE0F;</span>' +
+      '<span style="font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim);">On-chain Registry</span>' +
+    '</div>' +
+    '<dl class="kv" style="gap:6px 14px;">' +
+      '<dt>AgentRegistry</dt><dd><a href="' + M.explorer(M.contracts.AgentRegistry) + '" target="_blank" class="hash addr" style="font-size:12px;">' + M.contracts.AgentRegistry + '</a></dd>' +
+      '<dt>Chain</dt><dd><span class="num" style="font-size:13px;">' + M.contracts.chain + ' (id&nbsp;' + M.contracts.chainId + ')</span></dd>' +
+    '</dl>' +
+    '<p style="margin:10px 0 0; font-size:12px; color:var(--text-dim); line-height:1.5;">Each version is registered as a distinct on-chain entry with its own <span class="mono">configHash</span>. Parentage links form the provable lineage tree shown above.</p>' +
+  '</div>';
+
+  col.innerHTML = html;
+
+  /* ---- Update coach header ---- */
+  document.getElementById("coach-agent-name").textContent = current.label;
+  document.getElementById("coach-trades").textContent = current.trades;
+  document.getElementById("next-ver").textContent = current.version + 1;
+
+  /* ---- Build suggestions ---- */
+  var listEl = document.getElementById("suggestions-list");
+  var suggHtml = "";
+  M.coachSuggestions.forEach(function (s, idx) {
+    suggHtml += '<div class="suggestion-row">' +
+      '<div class="suggestion-row-head">' +
+        '<span class="suggestion-target">' + s.target + '</span>' +
+        '<span class="suggestion-delta">' +
+          '<span style="font-size:11px; color:var(--text-dim); font-weight:400; margin-right:2px;">est.</span>' +
+          '+' + s.expectedDeltaPct.toFixed(1) + '%' +
+        '</span>' +
+      '</div>' +
+      '<div class="suggestion-text">' + s.suggestion + '</div>' +
+      '<div class="suggestion-actions">' +
+        '<button class="btn btn-primary btn-sm" onclick="applyCoach(' + idx + ', this)">' +
+          'Apply &amp; re-backtest' +
+        '</button>' +
+        '<button class="btn btn-ghost btn-sm">Dismiss</button>' +
+        '<span class="pill" style="margin-left:auto; font-size:11px; color:var(--text-dim);">out-of-sample validated</span>' +
+      '</div>' +
+    '</div>';
+  });
+
+  listEl.innerHTML = suggHtml;
+
+  /* ---- Toast / spawn simulation ---- */
+  var toast = document.getElementById("spawn-toast");
+  var toastMsg = document.getElementById("toast-msg");
+  var toastTimer = null;
+
+  window.applyCoach = function (idx, btn) {
+    var s = M.coachSuggestions[idx];
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-bars"><i></i><i></i><i></i></span>&nbsp;Spawning v' + (current.version + 1) + '…';
+
+    toastMsg.textContent = "Applying \"" + s.target + "\" to v" + current.version + " → spawning v" + (current.version + 1) + " backtest on held-out window…";
+    toast.classList.add("visible");
+
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      btn.innerHTML = "&#x2713;&nbsp;Spawned - awaiting results";
+      btn.style.background = "var(--accent-soft)";
+      btn.style.color = "var(--accent)";
+      btn.style.borderColor = "var(--accent-dim)";
+    }, 1800);
+  };
+
+  window.dismissToast = function () {
+    toast.classList.remove("visible");
+  };
+
+})();
+</script>
+</body>
+</html>

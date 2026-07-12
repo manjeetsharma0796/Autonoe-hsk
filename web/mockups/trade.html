@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autonoe — Trade terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#080B12; --bg2:#0C111C; --panel:#0F1626; --panel2:#121A2C;
+    --ink:#F4F7FB; --muted:#8C9AB3; --faint:#5B6981;
+    --gold:#F5A524; --gold2:#FFCC66; --violet:#8B5CF6; --violet2:#B79CFF;
+    --green:#3FE0A6; --red:#FF6B6B;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.045);
+    --shadow:0 30px 80px -30px rgba(0,0,0,.8);
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --disp:"Orbitron",sans-serif; --body:"Exo 2",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility }
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--body);
+    font-weight:300; line-height:1.6; overflow-x:hidden; position:relative;
+  }
+  ::selection{ background:var(--gold); color:#1a1206 }
+  a{ color:inherit; text-decoration:none }
+  .wrap{ width:min(1320px,94vw); margin-inline:auto }
+
+  body::after{
+    content:""; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .vignette{ position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(120% 80% at 50% -10%, transparent 40%, rgba(0,0,0,.55) 100%) }
+
+  .orb{ position:fixed; border-radius:50%; filter:blur(110px); z-index:0; pointer-events:none; opacity:.42 }
+  .orb.g{ width:560px;height:560px; top:-200px; left:-180px;
+    background:radial-gradient(circle,rgba(245,165,36,.36),transparent 68%); animation:drift 22s ease-in-out infinite }
+  .orb.v{ width:620px;height:620px; top:32vh; right:-260px;
+    background:radial-gradient(circle,rgba(139,92,246,.34),transparent 68%); animation:drift 28s ease-in-out infinite reverse }
+  .orb.t{ width:480px;height:480px; bottom:-240px; left:34vw;
+    background:radial-gradient(circle,rgba(63,224,166,.16),transparent 68%); animation:drift 26s ease-in-out infinite }
+  @keyframes drift{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+
+  /* ── nav (verbatim from landing) ───────────────────────────── */
+  header{ position:fixed; top:0; left:0; right:0; z-index:50; transition:all .4s ease }
+  .nav{ display:flex; align-items:center; justify-content:space-between;
+    margin-top:18px; padding:12px 18px; border:1px solid var(--line);
+    border-radius:16px; background:rgba(12,17,28,.55); backdrop-filter:blur(14px) }
+  .brand{ display:flex; align-items:center; gap:12px; font-family:var(--disp); font-weight:800;
+    letter-spacing:.22em; font-size:14px }
+  .brand .dot{ width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,var(--gold2),var(--gold));
+    box-shadow:0 0 14px var(--gold); animation:pulse 2.6s ease-in-out infinite }
+  @keyframes pulse{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.82)} }
+  .navlinks{ display:flex; gap:30px; font-size:13px; letter-spacing:.04em; color:var(--muted) }
+  .navlinks a{ position:relative; transition:color .2s }
+  .navlinks a:hover, .navlinks a.active{ color:var(--ink) }
+  .navlinks a::after{ content:""; position:absolute; left:0; bottom:-6px; height:1px; width:0;
+    background:var(--gold); transition:width .25s ease }
+  .navlinks a:hover::after, .navlinks a.active::after{ width:100% }
+  @media(max-width:920px){ .navlinks{display:none} }
+  .navright{ display:flex; align-items:center; gap:14px }
+  .wallet{ display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:12px;
+    color:var(--muted); border:1px solid var(--line); padding:9px 13px; border-radius:11px;
+    background:rgba(255,255,255,.02) }
+  .wallet .live{ width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green) }
+  @media(max-width:620px){ .wallet{display:none} }
+
+  /* ── buttons (verbatim from landing) ──────────────────────── */
+  .btn{ font-family:var(--body); font-weight:500; font-size:13.5px; letter-spacing:.02em;
+    padding:11px 20px; border-radius:11px; cursor:pointer; border:1px solid transparent;
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    transition:transform .18s ease, box-shadow .25s ease, border-color .25s ease }
+  .btn:hover{ transform:translateY(-2px) }
+  .btn-gold{ position:relative; color:#1b1305; overflow:hidden;
+    background:linear-gradient(100deg,var(--gold),var(--gold2)); box-shadow:0 10px 30px -10px rgba(245,165,36,.6) }
+  .btn-gold::after{ content:""; position:absolute; inset:0; transform:translateX(-130%);
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent); animation:shimmer 3.4s infinite }
+  @keyframes shimmer{ 0%{transform:translateX(-130%)} 55%,100%{transform:translateX(130%)} }
+  .btn-ghost{ border-color:var(--line); color:var(--ink); background:rgba(255,255,255,.02) }
+  .btn-ghost:hover{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(245,165,36,.25) }
+  .btn-violet{ border-color:rgba(139,92,246,.35); color:var(--violet2); background:rgba(139,92,246,.08) }
+  .btn-violet:hover{ border-color:var(--violet); box-shadow:0 0 0 1px rgba(139,92,246,.3) }
+  .btn-block{ width:100% }
+  .btn-lg{ padding:15px 22px; font-size:15px }
+
+  main{ position:relative; z-index:2 }
+  .terminal{ padding:104px 0 64px }
+
+  /* page head row */
+  .crumbs{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:22px }
+  .crumbs .tag{ font-family:var(--mono); font-size:11.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold2) }
+  .crumbs .ttl{ font-family:var(--disp); font-weight:700; font-size:clamp(22px,2.6vw,30px); letter-spacing:-.01em }
+  .crumbs .spacer{ flex:1 }
+  .badge{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+    border:1px solid var(--line); padding:7px 13px; border-radius:999px; background:rgba(255,255,255,.02) }
+  .badge .ping{ width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green) }
+
+  /* ── grid layout ─────────────────────────────────────────── */
+  .grid{ display:grid; grid-template-columns:minmax(0,1fr) 388px; gap:22px; align-items:start }
+  @media(max-width:1100px){ .grid{ grid-template-columns:1fr } }
+  .left{ display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:22px; align-items:start }
+  @media(max-width:880px){ .left{ grid-template-columns:1fr } }
+
+  .panel{ border:1px solid var(--line); border-radius:20px; background:linear-gradient(180deg,var(--panel),var(--bg2));
+    overflow:hidden; box-shadow:var(--shadow) }
+  .phead{ display:flex; align-items:center; gap:14px; padding:18px 22px; border-bottom:1px solid var(--line2); flex-wrap:wrap }
+  .phead .lab{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--faint) }
+  .pbody{ padding:22px }
+
+  /* pair selector */
+  .pairsel{ position:relative }
+  .pairbtn{ display:flex; align-items:center; gap:12px; cursor:pointer; border:1px solid var(--line);
+    background:rgba(255,255,255,.02); border-radius:13px; padding:9px 13px; transition:border-color .2s }
+  .pairbtn:hover{ border-color:var(--gold) }
+  .pairbtn .b{ width:34px;height:34px;border-radius:9px; display:grid;place-items:center; font-family:var(--mono); font-weight:700; font-size:13px;
+    background:rgba(245,165,36,.1); color:var(--gold2); border:1px solid var(--line) }
+  .pairbtn .pname{ font-family:var(--disp); font-weight:600; font-size:15px; letter-spacing:.02em }
+  .pairbtn .pname small{ display:block; font-family:var(--body); font-weight:300; font-size:11px; color:var(--faint); letter-spacing:0 }
+  .pairbtn .car{ width:14px;height:14px;color:var(--muted); transition:transform .25s }
+  .pairsel.open .pairbtn .car{ transform:rotate(180deg) }
+  .pairmenu{ position:absolute; top:calc(100% + 8px); left:0; min-width:260px; z-index:30;
+    border:1px solid var(--line); border-radius:14px; background:rgba(12,17,28,.92); backdrop-filter:blur(16px);
+    box-shadow:var(--shadow); padding:6px; opacity:0; transform:translateY(-6px); pointer-events:none; transition:opacity .2s, transform .2s }
+  .pairsel.open .pairmenu{ opacity:1; transform:translateY(0); pointer-events:auto }
+  .pairopt{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s }
+  .pairopt:hover{ background:rgba(255,255,255,.04) }
+  .pairopt .b{ width:30px;height:30px;border-radius:8px; display:grid;place-items:center; font-family:var(--mono); font-weight:700; font-size:12px;
+    background:rgba(245,165,36,.1); color:var(--gold2); border:1px solid var(--line) }
+  .pairopt .m{ flex:1 } .pairopt .m b{ font-weight:500; font-size:14px } .pairopt .m small{ display:block; color:var(--faint); font-size:11px }
+  .pairopt .pp{ font-family:var(--mono); font-size:13px; color:var(--muted) }
+
+  .lastpx{ display:flex; align-items:baseline; gap:10px }
+  .lastpx .v{ font-family:var(--mono); font-weight:700; font-size:24px; color:var(--ink) }
+  .lastpx .ch{ font-family:var(--mono); font-size:13px; padding:4px 9px; border-radius:8px }
+  .up{ color:var(--green) } .down{ color:var(--red) }
+  .ch.up{ background:rgba(63,224,166,.1); border:1px solid rgba(63,224,166,.25) }
+  .ch.down{ background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.25) }
+
+  .tfchips{ display:flex; gap:6px; flex-wrap:wrap }
+  .chip{ font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--muted); cursor:pointer;
+    border:1px solid var(--line); background:rgba(255,255,255,.015); padding:6px 12px; border-radius:9px; transition:all .18s }
+  .chip:hover{ color:var(--ink); border-color:rgba(255,255,255,.18) }
+  .chip.on{ color:#1b1305; background:linear-gradient(100deg,var(--gold),var(--gold2)); border-color:transparent; font-weight:500 }
+
+  /* chart */
+  .chartwrap{ position:relative; padding:6px 4px 0 }
+  .chart{ width:100%; height:auto; display:block; overflow:visible }
+  .chart .grid line{ stroke:var(--line2); stroke-width:1 }
+  .chart .axis{ font-family:var(--mono); font-size:10px; fill:var(--faint) }
+  .candle .wick{ stroke-width:1.4 }
+  .stats4{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:16px;
+    border:1px solid var(--line2); border-radius:13px; overflow:hidden; background:var(--line2) }
+  @media(max-width:540px){ .stats4{ grid-template-columns:repeat(2,1fr) } }
+  .stats4 .c{ background:var(--panel); padding:13px 16px }
+  .stats4 .k{ font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint) }
+  .stats4 .n{ font-family:var(--mono); font-size:15px; margin-top:5px; color:var(--ink) }
+
+  /* swap box */
+  .swapfield{ border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.015); padding:14px 16px }
+  .swapfield + .swapfield{ margin-top:6px }
+  .sf-top{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--faint) }
+  .sf-top .bal{ font-family:var(--mono) }
+  .sf-main{ display:flex; align-items:center; gap:12px; margin-top:10px }
+  .sf-amt{ flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--ink);
+    font-family:var(--mono); font-weight:700; font-size:26px; width:100% }
+  .sf-amt::placeholder{ color:var(--faint) }
+  .sf-asset{ display:flex; align-items:center; gap:9px; flex-shrink:0; border:1px solid var(--line);
+    background:rgba(255,255,255,.02); border-radius:11px; padding:8px 11px; cursor:pointer; transition:border-color .2s }
+  .sf-asset:hover{ border-color:var(--gold) }
+  .sf-asset .b{ width:26px;height:26px;border-radius:7px; display:grid;place-items:center; font-family:var(--mono); font-weight:700; font-size:11px;
+    background:rgba(245,165,36,.1); color:var(--gold2); border:1px solid var(--line) }
+  .sf-asset .a{ font-family:var(--mono); font-weight:500; font-size:14px }
+  .sf-asset svg{ width:13px;height:13px;color:var(--muted) }
+  .swapmid{ display:flex; justify-content:center; margin:-2px 0 }
+  .swapmid button{ width:38px;height:38px; display:grid;place-items:center; cursor:pointer;
+    border:1px solid var(--line); border-radius:11px; background:var(--panel2); color:var(--gold2);
+    transition:transform .25s, border-color .2s; position:relative; z-index:2 }
+  .swapmid button:hover{ border-color:var(--gold); transform:rotate(180deg) }
+  .swapmid button svg{ width:16px;height:16px }
+
+  .summary{ margin-top:16px; border:1px solid var(--line2); border-radius:13px; padding:14px 16px; background:rgba(255,255,255,.012) }
+  .srow{ display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:5px 0; color:var(--muted) }
+  .srow .v{ font-family:var(--mono); color:var(--ink) }
+  .srow .v.violet{ color:var(--violet2) }
+  .slip{ display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line2) }
+  .slip .lab{ font-size:12px; color:var(--faint); flex:1 }
+  .slipchips{ display:flex; gap:5px }
+  .slipchips .chip{ padding:5px 10px; font-size:11px }
+  .note{ display:flex; gap:9px; align-items:flex-start; margin-top:14px; font-size:12px; color:var(--faint); line-height:1.5 }
+  .note svg{ width:15px;height:15px;flex-shrink:0;margin-top:1px;color:var(--gold2) }
+
+  /* balances strip */
+  .balstrip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line2);
+    border:1px solid var(--line2); border-radius:13px; overflow:hidden }
+  @media(max-width:540px){ .balstrip{ grid-template-columns:repeat(2,1fr) } }
+  .balstrip .c{ background:var(--panel); padding:14px 16px }
+  .balstrip .sy{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted) }
+  .balstrip .sy .b{ width:22px;height:22px;border-radius:6px; display:grid;place-items:center; font-family:var(--mono); font-weight:700; font-size:10px;
+    background:rgba(245,165,36,.1); color:var(--gold2); border:1px solid var(--line) }
+  .balstrip .n{ font-family:var(--mono); font-weight:500; font-size:16px; margin-top:8px; color:var(--ink) }
+  .balstrip .sub{ font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:2px }
+
+  /* ── AI rail ─────────────────────────────────────────────── */
+  .rail{ position:sticky; top:104px }
+  @media(max-width:1100px){ .rail{ position:static } }
+  .tabs{ display:flex; gap:4px; padding:6px; border-bottom:1px solid var(--line2); background:rgba(255,255,255,.012) }
+  .tab{ flex:1; font-family:var(--body); font-weight:500; font-size:13px; cursor:pointer; color:var(--muted);
+    border:1px solid transparent; border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:all .18s; background:transparent }
+  .tab svg{ width:15px;height:15px }
+  .tab:hover{ color:var(--ink) }
+  .tab.on{ color:var(--ink); background:rgba(139,92,246,.1); border-color:rgba(139,92,246,.28) }
+  .tabpane{ display:none } .tabpane.on{ display:block }
+
+  .railhead{ display:flex; align-items:center; gap:10px; padding:18px 20px 0 }
+  .railhead .ic{ width:30px;height:30px;border-radius:9px; display:grid;place-items:center;
+    border:1px solid rgba(139,92,246,.3); background:rgba(139,92,246,.1); color:var(--violet2) }
+  .railhead .ic svg{ width:16px;height:16px }
+  .railhead h4{ font-family:var(--disp); font-weight:600; font-size:15px }
+  .railhead p{ font-size:12px; color:var(--faint); margin-top:2px }
+  .railbody{ padding:18px 20px 20px }
+
+  .intentlab{ font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); margin-bottom:8px }
+  .intent{ width:100%; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.02);
+    color:var(--ink); font-family:var(--body); font-size:14px; padding:13px 15px; resize:none; outline:none; line-height:1.5;
+    transition:border-color .2s, box-shadow .2s }
+  .intent:focus{ border-color:var(--violet); box-shadow:0 0 0 3px rgba(139,92,246,.16) }
+  .intentrow{ display:flex; gap:8px; margin-top:10px }
+
+  /* thesis option card */
+  .thesis{ margin-top:18px; border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    background:linear-gradient(150deg,rgba(245,165,36,.06),rgba(139,92,246,.05)) }
+  .thesis .th-top{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line2) }
+  .dir{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; padding:5px 10px; border-radius:8px }
+  .dir.long{ color:var(--green); background:rgba(63,224,166,.1); border:1px solid rgba(63,224,166,.28) }
+  .th-asset{ font-family:var(--disp); font-weight:600; font-size:15px }
+  .th-tag{ margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--violet2) }
+  .th-body{ padding:14px 16px }
+  .pills{ display:flex; flex-wrap:wrap; gap:7px }
+  .pill{ font-family:var(--mono); font-size:11.5px; padding:6px 11px; border-radius:999px; border:1px solid var(--line); color:var(--muted) }
+  .pill .k{ color:var(--faint) }
+  .pill.ret{ color:var(--green); border-color:rgba(63,224,166,.28); background:rgba(63,224,166,.07) }
+  .pill.risk{ color:var(--gold2); border-color:rgba(245,165,36,.28); background:rgba(245,165,36,.06) }
+  .pill.size{ color:var(--ink) }
+  .th-desc{ font-size:13px; color:var(--muted); margin-top:12px; line-height:1.55 }
+  .th-foot{ display:flex; gap:8px; padding:0 16px 16px }
+
+  /* thinking trace */
+  .think{ margin-top:14px; border:1px solid var(--line2); border-radius:13px; overflow:hidden; background:rgba(255,255,255,.012) }
+  .think summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:9px;
+    padding:12px 15px; font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+    transition:color .2s }
+  .think summary::-webkit-details-marker{ display:none }
+  .think summary:hover{ color:var(--ink) }
+  .think summary .car{ width:13px;height:13px; transition:transform .25s; color:var(--faint) }
+  .think[open] summary .car{ transform:rotate(180deg) }
+  .think summary .dotg{ width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet) }
+  .trace{ padding:4px 16px 16px; border-top:1px solid var(--line2) }
+  .tstep{ position:relative; padding:9px 0 9px 22px; font-size:12.5px; color:var(--muted); line-height:1.55 }
+  .tstep::before{ content:""; position:absolute; left:5px; top:15px; width:6px;height:6px;border-radius:50%;
+    background:var(--violet2); box-shadow:0 0 8px rgba(139,92,246,.5) }
+  .tstep::after{ content:""; position:absolute; left:7.5px; top:21px; bottom:-4px; width:1px; background:var(--line) }
+  .tstep:last-child::after{ display:none }
+  .tstep b{ color:var(--ink); font-weight:500 }
+
+  /* assistant chat */
+  .chat{ display:flex; flex-direction:column; gap:14px; max-height:480px; overflow-y:auto; padding-right:4px }
+  .chat::-webkit-scrollbar{ width:6px } .chat::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px }
+  .msg{ display:flex; gap:10px; max-width:92% }
+  .msg .av{ width:28px;height:28px;border-radius:8px; flex-shrink:0; display:grid;place-items:center; font-family:var(--mono); font-size:11px; font-weight:700 }
+  .msg.bot .av{ border:1px solid rgba(139,92,246,.3); background:rgba(139,92,246,.1); color:var(--violet2) }
+  .msg.me{ align-self:flex-end; flex-direction:row-reverse }
+  .msg.me .av{ border:1px solid var(--line); background:rgba(245,165,36,.1); color:var(--gold2) }
+  .bubble{ font-size:13.5px; line-height:1.55; padding:11px 14px; border-radius:13px }
+  .msg.bot .bubble{ background:rgba(255,255,255,.03); border:1px solid var(--line2); border-top-left-radius:4px; color:var(--ink) }
+  .msg.me .bubble{ background:rgba(245,165,36,.08); border:1px solid rgba(245,165,36,.2); border-top-right-radius:4px; color:var(--ink) }
+  .bubble b{ font-weight:500; color:var(--gold2) }
+  .bubble .mono{ font-family:var(--mono); font-size:12.5px; color:var(--violet2) }
+  .composer{ display:flex; gap:8px; margin-top:16px; align-items:flex-end }
+  .composer textarea{ flex:1; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.02);
+    color:var(--ink); font-family:var(--body); font-size:14px; padding:12px 14px; resize:none; outline:none; line-height:1.5; max-height:120px;
+    transition:border-color .2s, box-shadow .2s }
+  .composer textarea:focus{ border-color:var(--violet); box-shadow:0 0 0 3px rgba(139,92,246,.16) }
+  .composer .send{ width:46px;height:46px; flex-shrink:0; display:grid;place-items:center; cursor:pointer;
+    border:none; border-radius:13px; color:#1b1305; background:linear-gradient(100deg,var(--gold),var(--gold2));
+    box-shadow:0 10px 30px -12px rgba(245,165,36,.6); transition:transform .18s }
+  .composer .send:hover{ transform:translateY(-2px) }
+  .composer .send svg{ width:18px;height:18px }
+
+  footer{ border-top:1px solid var(--line2); padding:34px 0; position:relative; z-index:2;
+    display:flex; justify-content:space-between; align-items:center; color:var(--faint); font-size:13px; flex-wrap:wrap; gap:14px }
+  footer .brand{ color:var(--muted) }
+
+  .reveal{ opacity:0; transform:translateY(22px) }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important }
+    .reveal{ opacity:1; transform:none }
+  }
+</style>
+</head>
+<body>
+  <div class="orb g"></div><div class="orb v"></div><div class="orb t"></div>
+  <div class="vignette"></div>
+
+  <header>
+    <div class="wrap">
+      <nav class="nav">
+        <div class="brand"><span class="dot"></span> AUTONOE</div>
+        <div class="navlinks">
+          <a href="index.html#tribunal">Tribunal</a>
+          <a href="index.html#how">How it works</a>
+          <a href="index.html#markets">Markets</a>
+          <a href="trade.html" class="active">Trade</a>
+        </div>
+        <div class="navright">
+          <span class="wallet"><span class="live"></span> 0x7A3f…D29c · agent</span>
+          <button class="btn btn-gold">Launch app →</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="terminal wrap">
+      <div class="crumbs reveal">
+        <span class="tag">Terminal</span>
+        <span class="ttl">Trade</span>
+        <span class="spacer"></span>
+        <span class="badge"><span class="ping"></span> Mantle Sepolia · block 8,412,907</span>
+      </div>
+
+      <div class="grid">
+        <!-- ── LEFT: chart + swap ─────────────────────────── -->
+        <div class="left">
+
+          <!-- CHART PANEL -->
+          <section class="panel reveal" style="grid-column:1 / -1">
+            <div class="phead">
+              <div class="pairsel" id="pairsel">
+                <div class="pairbtn" id="pairbtn" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="b" id="pair-b">W</span>
+                  <span class="pname" id="pair-name">mUSD/WMNT <small id="pair-sub">Wrapped Mantle</small></span>
+                  <svg class="car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="pairmenu" id="pairmenu" role="listbox">
+                  <div class="pairopt" data-sym="WMNT" data-b="W" data-sub="Wrapped Mantle" data-px="1.2843" data-ch="+4.21%" data-dir="up">
+                    <span class="b">W</span><div class="m"><b>mUSD/WMNT</b><small>Wrapped Mantle</small></div><span class="pp up">1.2843</span>
+                  </div>
+                  <div class="pairopt" data-sym="MockBTC" data-b="₿" data-sub="Test Bitcoin" data-px="64,210" data-ch="-1.08%" data-dir="down">
+                    <span class="b">₿</span><div class="m"><b>mUSD/MockBTC</b><small>Test Bitcoin</small></div><span class="pp down">64,210</span>
+                  </div>
+                  <div class="pairopt" data-sym="MockETH" data-b="Ξ" data-sub="Test Ether" data-px="3,488" data-ch="+2.74%" data-dir="up">
+                    <span class="b">Ξ</span><div class="m"><b>mUSD/MockETH</b><small>Test Ether</small></div><span class="pp up">3,488</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lastpx">
+                <span class="v" id="last-v">1.2843</span>
+                <span class="ch up" id="last-ch">▲ 4.21%</span>
+              </div>
+
+              <span class="spacer"></span>
+
+              <div class="tfchips" role="group" aria-label="Timeframe">
+                <button class="chip">5m</button>
+                <button class="chip">15m</button>
+                <button class="chip">1H</button>
+                <button class="chip on">4H</button>
+                <button class="chip">1D</button>
+                <button class="chip">1W</button>
+              </div>
+            </div>
+
+            <div class="pbody">
+              <div class="chartwrap">
+                <svg class="chart" viewBox="0 0 880 320" preserveAspectRatio="none" role="img" aria-label="Candlestick price chart for mUSD/WMNT">
+                  <defs>
+                    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#F5A524" stop-opacity=".22"/>
+                      <stop offset="1" stop-color="#F5A524" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- gridlines -->
+                  <g class="grid">
+                    <line x1="0" y1="40" x2="880" y2="40"/>
+                    <line x1="0" y1="110" x2="880" y2="110"/>
+                    <line x1="0" y1="180" x2="880" y2="180"/>
+                    <line x1="0" y1="250" x2="880" y2="250"/>
+                  </g>
+                  <!-- area fill under closes -->
+                  <path d="M30,210 L80,200 130,214 180,178 230,190 280,150 330,162 380,124 430,140 480,98 530,116 580,82 630,100 680,70 730,86 780,54 830,66 L830,300 30,300 Z" fill="url(#area)"/>
+                  <polyline points="30,210 80,200 130,214 180,178 230,190 280,150 330,162 380,124 430,140 480,98 530,116 580,82 630,100 680,70 730,86 780,54 830,66"
+                    fill="none" stroke="#F5A524" stroke-width="1.4" stroke-opacity=".55" stroke-linejoin="round"/>
+                  <!-- candles -->
+                  <g class="candle" id="candles"></g>
+                  <!-- last price marker -->
+                  <line x1="0" y1="66" x2="880" y2="66" stroke="#FFCC66" stroke-width="1" stroke-dasharray="3 5" stroke-opacity=".55"/>
+                  <!-- y axis labels -->
+                  <text class="axis" x="836" y="44">1.30</text>
+                  <text class="axis" x="836" y="114">1.26</text>
+                  <text class="axis" x="836" y="184">1.22</text>
+                  <text class="axis" x="836" y="254">1.18</text>
+                  <!-- x axis labels -->
+                  <text class="axis" x="30" y="316">12:00</text>
+                  <text class="axis" x="290" y="316">16:00</text>
+                  <text class="axis" x="540" y="316">20:00</text>
+                  <text class="axis" x="780" y="316">00:00</text>
+                </svg>
+              </div>
+
+              <div class="stats4">
+                <div class="c"><div class="k">24h High</div><div class="n up">1.3018</div></div>
+                <div class="c"><div class="k">24h Low</div><div class="n down">1.2210</div></div>
+                <div class="c"><div class="k">24h Vol (mUSD)</div><div class="n">842,109</div></div>
+                <div class="c"><div class="k">Liquidity</div><div class="n">3.91M</div></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SWAP / EXECUTE -->
+          <section class="panel reveal">
+            <div class="phead"><span class="lab">Swap · Execute</span></div>
+            <div class="pbody">
+              <div class="swapfield">
+                <div class="sf-top"><span>From</span><span class="bal">Balance: 12,500.00 mUSD</span></div>
+                <div class="sf-main">
+                  <input class="sf-amt" id="from-amt" type="text" inputmode="decimal" value="1,000" aria-label="From amount" />
+                  <div class="sf-asset">
+                    <span class="b">$</span><span class="a">mUSD</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="swapmid">
+                <button aria-label="Flip direction">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v13M7 17l-3-3M7 17l3-3M17 20V7M17 7l-3 3M17 7l3 3"/></svg>
+                </button>
+              </div>
+
+              <div class="swapfield">
+                <div class="sf-top"><span>To (estimated)</span><span class="bal">Balance: 318.40 WMNT</span></div>
+                <div class="sf-main">
+                  <input class="sf-amt" id="to-amt" type="text" value="778.62" readonly aria-label="To amount" />
+                  <div class="sf-asset">
+                    <span class="b">W</span><span class="a">WMNT</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="summary">
+                <div class="srow"><span>Rate</span><span class="v">1 mUSD = 0.7787 WMNT</span></div>
+                <div class="srow"><span>Min. received</span><span class="v">774.74 WMNT</span></div>
+                <div class="srow"><span>Network fee</span><span class="v">~0.0012 MNT</span></div>
+                <div class="srow"><span>Route</span><span class="v violet">mUSD → WMNT · MockDEX</span></div>
+                <div class="slip">
+                  <span class="lab">Slippage tolerance</span>
+                  <div class="slipchips">
+                    <button class="chip">0.1%</button>
+                    <button class="chip on">0.5%</button>
+                    <button class="chip">1.0%</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Output is estimated at <b style="color:var(--gold2)">0.5%</b> slippage. The agent wallet will revert if you receive less than the minimum. Testnet only — not financial advice.</span>
+              </div>
+
+              <button class="btn btn-gold btn-block btn-lg" style="margin-top:16px">Execute swap →</button>
+            </div>
+          </section>
+
+          <!-- BALANCES / POSITIONS -->
+          <section class="panel reveal">
+            <div class="phead"><span class="lab">Agent wallet · balances</span></div>
+            <div class="pbody">
+              <div class="balstrip">
+                <div class="c"><div class="sy"><span class="b">$</span> mUSD</div><div class="n">12,500.00</div><div class="sub">≈ $12,500</div></div>
+                <div class="c"><div class="sy"><span class="b">W</span> WMNT</div><div class="n">318.40</div><div class="sub up">+4.21% · ≈ $408.92</div></div>
+                <div class="c"><div class="sy"><span class="b">₿</span> MockBTC</div><div class="n">0.0140</div><div class="sub down">-1.08% · ≈ $898.94</div></div>
+                <div class="c"><div class="sy"><span class="b">Ξ</span> MockETH</div><div class="n">1.250</div><div class="sub up">+2.74% · ≈ $4,360</div></div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ── RIGHT: AI RAIL ─────────────────────────────── -->
+        <aside class="rail reveal">
+          <div class="panel">
+            <div class="tabs" role="tablist">
+              <button class="tab on" data-tab="thesis" role="tab" aria-selected="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                Quick Thesis
+              </button>
+              <button class="tab" data-tab="assistant" role="tab" aria-selected="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Assistant
+              </button>
+            </div>
+
+            <!-- TAB 1: QUICK THESIS -->
+            <div class="tabpane on" id="pane-thesis" role="tabpanel">
+              <div class="railhead">
+                <div class="ic">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                </div>
+                <div><h4>Quick Thesis</h4><p>One intent, one ranked option.</p></div>
+              </div>
+              <div class="railbody">
+                <div class="intentlab">Your intent</div>
+                <textarea class="intent" rows="3" id="intent">I think WMNT runs into the Mantle upgrade. Build a 4h swing thesis against mUSD.</textarea>
+                <div class="intentrow">
+                  <button class="btn btn-violet btn-block">Generate thesis</button>
+                </div>
+
+                <div class="thesis">
+                  <div class="th-top">
+                    <span class="dir long">Long</span>
+                    <span class="th-asset">WMNT</span>
+                    <span class="th-tag">Option A</span>
+                  </div>
+                  <div class="th-body">
+                    <div class="pills">
+                      <span class="pill size"><span class="k">size</span> 1,000 mUSD</span>
+                      <span class="pill ret"><span class="k">pred.</span> +6.4% – +11%</span>
+                      <span class="pill risk"><span class="k">risk</span> medium</span>
+                      <span class="pill"><span class="k">horizon</span> 4h–2d</span>
+                    </div>
+                    <p class="th-desc">Momentum on the 4H is constructive with an ascending base off 1.22. Catalyst clustering into the upgrade window supports a scaled entry; invalidate below 1.198.</p>
+                  </div>
+                  <div class="th-foot">
+                    <button class="btn btn-gold btn-block">Refine in Judge Panel →</button>
+                  </div>
+                </div>
+
+                <details class="think">
+                  <summary>
+                    <span class="dotg"></span> Show thinking
+                    <span style="flex:1"></span>
+                    <svg class="car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </summary>
+                  <div class="trace">
+                    <div class="tstep"><b>Parsed intent</b> — directional swing, asset WMNT, base mUSD, ~4h horizon, bullish bias.</div>
+                    <div class="tstep"><b>On-chain pull</b> — WMNT/mUSD pool depth 3.91M, 24h vol 842k, net inflow positive over 3 sessions.</div>
+                    <div class="tstep"><b>Indicators</b> — 4H RSI 58 (room), price holding above 20/50 EMA cross, structure of higher lows intact.</div>
+                    <div class="tstep"><b>Risk frame</b> — invalidation 1.198 (-2.0%); R:R ≈ 1:3.2 at first target 1.36.</div>
+                    <div class="tstep"><b>Sizing</b> — 8% of mUSD balance → 1,000 mUSD, scaled in two clips to respect slippage band.</div>
+                    <div class="tstep"><b>Verdict draft</b> — Long, medium risk, predicted +6.4%–11%. Ready for tribunal cross-examination.</div>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <!-- TAB 2: ASSISTANT -->
+            <div class="tabpane" id="pane-assistant" role="tabpanel">
+              <div class="railhead">
+                <div class="ic">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div><h4>Assistant</h4><p>Ask about the market or your wallet.</p></div>
+              </div>
+              <div class="railbody">
+                <div class="chat" id="chat">
+                  <div class="msg bot"><div class="av">A</div><div class="bubble">Hey — I can read the live <b>mUSD/WMNT</b> book, your agent wallet, and the DecisionLog. What are you weighing?</div></div>
+                  <div class="msg me"><div class="av">YOU</div><div class="bubble">What's WMNT done in the last 24h and is now a decent entry?</div></div>
+                  <div class="msg bot"><div class="av">A</div><div class="bubble">WMNT is <span class="mono">+4.21%</span> at <span class="mono">1.2843</span>, high 1.3018 / low 1.2210. It's mid-range after a clean bounce off support. A scaled entry beats a full clip here — want me to draft a 4H thesis and route it to the tribunal?</div></div>
+                  <div class="msg me"><div class="av">YOU</div><div class="bubble">Yes, keep size to about 1k mUSD.</div></div>
+                  <div class="msg bot"><div class="av">A</div><div class="bubble">Done — drafted <b>Long WMNT · 1,000 mUSD</b>, predicted <span class="mono">+6.4%–11%</span>, risk medium. It's loaded in the Quick Thesis tab; hit <b>Refine in Judge Panel</b> to put it on trial.</div></div>
+                </div>
+                <div class="composer">
+                  <textarea rows="1" placeholder="Message the assistant…" aria-label="Message the assistant"></textarea>
+                  <button class="send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <footer class="wrap">
+      <div class="brand"><span class="dot"></span> AUTONOE</div>
+      <div>Built for the Mantle Turing Test 2026 · testnet · not financial advice</div>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script>
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* candlestick generation (deterministic sample data) */
+    (function(){
+      const candles = [
+        [210,205,218,200],[205,198,210,202],[200,214,196,216],[214,178,220,176],
+        [178,190,174,194],[190,150,196,148],[150,162,146,166],[162,124,168,122],
+        [124,140,120,144],[140,98,146,96],[98,116,94,120],[116,82,122,80],
+        [82,100,78,104],[100,70,106,68],[70,86,66,90],[86,54,92,52],[54,66,50,70]
+      ];
+      const g = document.getElementById('candles'); if(!g) return;
+      const x0 = 30, step = 50, bw = 13;
+      candles.forEach((c,i)=>{
+        const [o,cl,hi,lo] = c;
+        const x = x0 + i*step;
+        const up = cl <= o; // lower y = higher price → close above open is "up"
+        const col = up ? '#3FE0A6' : '#FF6B6B';
+        const top = Math.min(o,cl), bot = Math.max(o,cl);
+        const ns = 'http://www.w3.org/2000/svg';
+        const wick = document.createElementNS(ns,'line');
+        wick.setAttribute('x1',x); wick.setAttribute('x2',x);
+        wick.setAttribute('y1',hi); wick.setAttribute('y2',lo);
+        wick.setAttribute('class','wick'); wick.setAttribute('stroke',col); wick.setAttribute('stroke-opacity','.85');
+        g.appendChild(wick);
+        const body = document.createElementNS(ns,'rect');
+        body.setAttribute('x', x - bw/2); body.setAttribute('y', top);
+        body.setAttribute('width', bw); body.setAttribute('height', Math.max(2, bot-top));
+        body.setAttribute('rx','1.5'); body.setAttribute('fill', col); body.setAttribute('fill-opacity','.85');
+        g.appendChild(body);
+      });
+    })();
+
+    /* pair selector */
+    (function(){
+      const sel = document.getElementById('pairsel');
+      const btn = document.getElementById('pairbtn');
+      const menu = document.getElementById('pairmenu');
+      if(!sel) return;
+      const close = ()=>{ sel.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+      btn.addEventListener('click', e=>{ e.stopPropagation(); const o = sel.classList.toggle('open'); btn.setAttribute('aria-expanded', o); });
+      btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); btn.click(); } });
+      document.addEventListener('click', close);
+      menu.querySelectorAll('.pairopt').forEach(opt=>{
+        opt.addEventListener('click', ()=>{
+          document.getElementById('pair-b').textContent = opt.dataset.b;
+          document.getElementById('pair-name').childNodes[0].nodeValue = 'mUSD/'+opt.dataset.sym+' ';
+          document.getElementById('pair-sub').textContent = opt.dataset.sub;
+          const v = document.getElementById('last-v'); v.textContent = opt.dataset.px;
+          const ch = document.getElementById('last-ch');
+          const up = opt.dataset.dir === 'up';
+          ch.className = 'ch ' + (up?'up':'down');
+          ch.textContent = (up?'▲ ':'▼ ') + opt.dataset.ch.replace(/[+-]/,'');
+          close();
+        });
+      });
+    })();
+
+    /* timeframe + slippage chips */
+    document.querySelectorAll('.tfchips').forEach(grp=>{
+      grp.addEventListener('click', e=>{ const c = e.target.closest('.chip'); if(!c) return;
+        grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); });
+    });
+    document.querySelectorAll('.slipchips').forEach(grp=>{
+      grp.addEventListener('click', e=>{ const c = e.target.closest('.chip'); if(!c) return;
+        grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); });
+    });
+
+    /* tab switching */
+    (function(){
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t=>{
+        t.addEventListener('click', ()=>{
+          tabs.forEach(x=>{ x.classList.remove('on'); x.setAttribute('aria-selected','false'); });
+          t.classList.add('on'); t.setAttribute('aria-selected','true');
+          document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
+          document.getElementById('pane-'+t.dataset.tab).classList.add('on');
+        });
+      });
+    })();
+
+    /* live estimated output as you type (light touch) */
+    (function(){
+      const from = document.getElementById('from-amt'), to = document.getElementById('to-amt');
+      if(!from||!to) return;
+      from.addEventListener('input', ()=>{
+        const n = parseFloat(from.value.replace(/,/g,'')) || 0;
+        to.value = (n*0.7787).toLocaleString(undefined,{maximumFractionDigits:2});
+      });
+    })();
+
+    /* nav condense */
+    addEventListener('scroll', ()=>{
+      const n = document.querySelector('.nav');
+      if(scrollY>20){ n.style.background='rgba(8,11,18,.8)'; n.style.marginTop='10px'; }
+      else { n.style.background='rgba(12,17,28,.55)'; n.style.marginTop='18px'; }
+    });
+
+    /* motion stack — light reveals, degrade gracefully */
+    if(!reduce && window.Lenis){
+      const lenis = new Lenis({ lerp:.09, wheelMultiplier:1 });
+      lenis.on('scroll', ()=> window.ScrollTrigger && ScrollTrigger.update());
+      gsap.ticker.add((t)=> lenis.raf(t*1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+    if(window.gsap && !reduce){
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.utils.toArray('.reveal').forEach((el,i)=>{
+        gsap.to(el,{ opacity:1, y:0, duration:.8, ease:'power3.out', delay:Math.min(i*0.06,.3),
+          scrollTrigger:{ trigger:el, start:'top 92%' } });
+      });
+    } else {
+      document.querySelectorAll('.reveal').forEach(e=>{ e.style.opacity=1; e.style.transform='none'; });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+/* ============================================================
+   EditableOptionCard - editable upgrade of the refined-option card.
+   Flat --panel surface, gold accent glow, editable size + stop-loss.
+   Tokens only; mirrors .ref / .conf / .track / .bar in studio.module.css.
+   ============================================================ */
+
+.card {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s5) var(--s5) var(--s5);
+  background: var(--panel);
+  overflow: hidden;
+  transition: border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  background: radial-gradient(90% 60% at 100% 0%, var(--gold), transparent 60%);
+  pointer-events: none;
+}
+.card > * {
+  position: relative;
+}
+.card:hover {
+  border-color: rgba(245, 165, 36, 0.4);
+}
+
+/* Selected = amber border + glow */
+.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold),
+    0 18px 50px -24px rgba(245, 165, 36, 0.55);
+}
+.selected::before {
+  opacity: 0.18;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+.dir {
+  --c: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c);
+}
+.dir.long {
+  --c: var(--green);
+}
+.dir.short {
+  --c: var(--red);
+}
+.dir.hedge {
+  --c: var(--violet2);
+}
+.dir.hold {
+  --c: var(--muted);
+}
+.glyph {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--c);
+}
+.asset {
+  margin-left: 2px;
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.headRight {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* risk badge - same tinting contract as studio .riskpill */
+.riskpill {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+}
+.riskpill.low {
+  color: var(--green);
+  border-color: rgba(63, 224, 166, 0.32);
+  background: rgba(63, 224, 166, 0.08);
+}
+.riskpill.medium {
+  color: var(--gold2);
+  border-color: rgba(245, 165, 36, 0.32);
+  background: rgba(245, 165, 36, 0.08);
+}
+.riskpill.high {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.32);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+/* choose / preferred toggle */
+.selBtn {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--faint);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.selBtn:hover {
+  color: var(--gold2);
+  border-color: rgba(245, 165, 36, 0.4);
+}
+.selBtn:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+.selBtnOn {
+  color: #1b1305;
+  border-color: transparent;
+  background: linear-gradient(120deg, var(--gold), var(--gold2));
+}
+.selBtnOn:hover {
+  color: #1b1305;
+}
+
+.refLine {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+  margin-top: 6px;
+}
+
+/* ── Predicted outcome stat ─────────────────────────────────────────────── */
+.pct {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: var(--s4);
+}
+.pv {
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--green);
+}
+.pl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ── Editable params ────────────────────────────────────────────────────── */
+.params {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s3);
+  margin-top: var(--s5);
+}
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.plab {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.input {
+  width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--bg2);
+  transition: border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(245, 165, 36, 0.14);
+}
+.input:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+/* stop-loss reads as a downside guard → red accent on focus */
+.inputStop:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.14);
+}
+
+/* ── Read-only derived levels ───────────────────────────────────────────── */
+.levels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s3);
+  margin-top: var(--s4);
+}
+.level {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.015);
+}
+.llab {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.lval {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ── Caveats - mirrors studio .caveats ──────────────────────────────────── */
+.caveats {
+  margin-top: var(--s5);
+}
+.cl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 9px;
+}
+.caveats ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+}
+.caveats li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.caveats li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(245, 165, 36, 0.6);
+}
+
+/* ── Confidence bar - exact studio .conf/.track/.bar contract ───────────── */
+.conf {
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line2);
+}
+.ch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.ck {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.cv {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--gold2);
+}
+.track {
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  width: 0;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  transition: width 1s ease;
+}
+
+/* ── Actions ────────────────────────────────────────────────────────────── */
+.acts {
+  display: flex;
+  gap: var(--s3);
+  margin-top: var(--s5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .input,
+  .selBtn,
+  .bar {
+    transition: none;
+  }
+}

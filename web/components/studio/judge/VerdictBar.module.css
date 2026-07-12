@@ -1,0 +1,126 @@
+/* VerdictBar - polished amber-tinted verdict banner */
+
+.verdict {
+  position: relative;
+  margin-top: var(--s6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  background: linear-gradient(
+    110deg,
+    rgba(245, 165, 36, 0.08),
+    rgba(139, 92, 246, 0.06)
+  );
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+/* thin animated amber accent edge along the top */
+.edge {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold),
+    var(--gold2),
+    var(--gold),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: edgeShift 3.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes edgeShift {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vk {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold2);
+}
+
+.heading {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--ink);
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ref {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.conf {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--gold2);
+  font-weight: 700;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 7px 13px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.pillRet {
+  color: var(--green);
+  border-color: rgba(63, 224, 166, 0.3);
+  background: rgba(63, 224, 166, 0.08);
+}
+
+.pillRisk {
+  color: var(--gold2);
+  border-color: rgba(245, 165, 36, 0.3);
+  background: rgba(245, 165, 36, 0.07);
+}
+
+.pillConf {
+  color: var(--violet2);
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge {
+    animation: none;
+  }
+}

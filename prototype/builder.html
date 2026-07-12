@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Build</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Page-local layout helpers only - reuses design-system tokens, invents no new visual styles. */
+    .builder-grid { display: grid; grid-template-columns: 1fr 340px; gap: var(--gap); align-items: start; }
+    @media (max-width: 980px) { .builder-grid { grid-template-columns: 1fr; } }
+    .section-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--bg-inset); border: 1px solid var(--border-strong);
+      font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--accent);
+    }
+    .subagent-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; background: var(--bg-inset);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+    .subagent-row .meta { display: flex; flex-direction: column; gap: 2px; }
+    .subagent-row .meta b { font-size: 14px; font-weight: 600; }
+    .subagent-row .meta span { font-size: 12px; color: var(--text-dim); }
+    .role-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+    .role-row .role-name { display: flex; flex-direction: column; gap: 2px; }
+    .role-row .role-name b { font-size: 13.5px; }
+    .role-row .role-name span { font-size: 11px; color: var(--text-dim); }
+    .radio-card {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 12px 14px; background: var(--bg-inset);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; transition: border-color .12s, background .12s;
+    }
+    .radio-card:hover { border-color: var(--border-strong); }
+    .radio-card.sel { border-color: var(--accent-dim); background: var(--accent-soft); }
+    .radio-card.sel.warn-sel { border-color: rgba(245,177,76,.5); background: var(--warn-soft); }
+    .radio-card input { display: none; }
+    .radio-card .rtitle { font-size: 14px; font-weight: 600; }
+    .radio-card .rsub { font-size: 12px; color: var(--text-dim); }
+    .lev-note {
+      margin-top: 8px; font-size: 12px; color: var(--baseline);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sticky-side { position: sticky; top: 76px; }
+    .hash-preview {
+      font-family: var(--font-mono); font-size: 12.5px; color: var(--info);
+      word-break: break-all; line-height: 1.55;
+      padding: 10px 12px; background: var(--bg-inset);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+    .mini-stat { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+    .mini-stat span { color: var(--text-dim); }
+    .mini-stat b { font-family: var(--font-mono); font-weight: 600; }
+    .field-inline { margin-bottom: 0; }
+    .grid-params { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .range-wrap { display: flex; align-items: center; gap: 12px; }
+    .range-wrap output {
+      font-family: var(--font-mono); font-weight: 700; font-size: 15px;
+      min-width: 42px; text-align: right; color: var(--accent);
+    }
+    .privacy-explain {
+      font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
+      padding: 12px 14px; background: var(--bg-inset);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 12px;
+    }
+    .privacy-explain.blackbox { border-color: rgba(169,139,255,.4); }
+    .privacy-explain b { color: var(--violet); }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="index.html">
+      <span class="logo-dot"></span>
+      Autonoe <small>Agent Arena</small>
+    </a>
+    <a class="nav-link" href="index.html">Arena</a>
+    <a class="nav-link active" href="builder.html">Build</a>
+    <a class="nav-link" href="backtest.html">Backtest</a>
+    <a class="nav-link" href="receipt.html">Receipt</a>
+    <a class="nav-link" href="execute.html">Execute</a>
+    <a class="nav-link" href="history.html">History</a>
+    <a class="nav-link" href="blackbox.html">Black-box</a>
+    <a class="nav-link" href="versions.html">Versions</a>
+    <span class="nav-spacer"></span>
+    <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+  </nav>
+
+  <main class="container">
+
+    <div class="flex items-center justify-between gap-16" style="flex-wrap:wrap; margin-bottom:8px;">
+      <div>
+        <div class="eyebrow">Agent Builder</div>
+        <h1 style="margin-bottom:4px;">Configure your trading agent</h1>
+        <p class="mb-0">Compose data subagents, debate models, and a strategy into a single config bundle. The bundle hashes to your agent's <span class="up">on-chain identity</span>.</p>
+      </div>
+      <div class="flex items-center gap-8">
+        <span class="pill"><span id="winLabel">window -</span></span>
+        <span class="badge badge-sim"><span class="dot"></span>Unregistered draft</span>
+      </div>
+    </div>
+
+    <!-- Mode switch -->
+    <div class="card flat" style="margin:16px 0;">
+      <div class="flex items-center justify-between gap-16" style="flex-wrap:wrap;">
+        <div class="flex items-center gap-12">
+          <span class="card-title-sub" style="text-transform:uppercase; letter-spacing:.05em; font-weight:650;">Build mode</span>
+          <div class="flex gap-8" id="modePills">
+            <span class="pill clickable" data-mode="Autonomous">Autonomous</span>
+            <span class="pill clickable" data-mode="Assisted">Assisted</span>
+            <span class="pill clickable" data-mode="Solo">Solo</span>
+          </div>
+        </div>
+        <div class="card-title-sub" id="modeHint"></div>
+      </div>
+    </div>
+
+    <div class="builder-grid">
+
+      <!-- LEFT: config sections -->
+      <div class="stack">
+
+        <!-- (1) Data subagents -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="flex items-center gap-12"><span class="section-num">1</span> Data subagents</h2>
+            <span class="card-title-sub">Feeds wired into the thesis context</span>
+          </div>
+          <div class="grid grid-2">
+            <label class="subagent-row toggle" style="cursor:pointer;">
+              <span class="meta"><b>Market</b><span>OHLCV candles · order book</span></span>
+              <input type="checkbox" class="subagent" data-name="market" checked><span class="track"></span>
+            </label>
+            <label class="subagent-row toggle" style="cursor:pointer;">
+              <span class="meta"><b>Indicators</b><span>RSI · ATR · MA · funding</span></span>
+              <input type="checkbox" class="subagent" data-name="indicators" checked><span class="track"></span>
+            </label>
+            <label class="subagent-row toggle" style="cursor:pointer;">
+              <span class="meta"><b>On-chain</b><span>flows · whale txns · gas</span></span>
+              <input type="checkbox" class="subagent" data-name="onchain"><span class="track"></span>
+            </label>
+            <label class="subagent-row toggle" style="cursor:pointer;">
+              <span class="meta"><b>News</b><span>headlines · sentiment</span></span>
+              <input type="checkbox" class="subagent" data-name="news"><span class="track"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- (2) Models per role -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="flex items-center gap-12"><span class="section-num">2</span> Models per role</h2>
+            <span class="card-title-sub">The four-way debate stack</span>
+          </div>
+          <div class="stack">
+            <div class="role-row">
+              <span class="role-name"><b>Thesis</b><span>frames the trade idea</span></span>
+              <select class="model" data-role="thesis">
+                <option>Mistral large</option>
+                <option>Groq llama</option>
+                <option selected>Gemini</option>
+              </select>
+            </div>
+            <hr class="divider" style="margin:6px 0;">
+            <div class="role-row">
+              <span class="role-name"><b>Supporter</b><span>argues the bull case</span></span>
+              <select class="model" data-role="supporter">
+                <option selected>Mistral large</option>
+                <option>Groq llama</option>
+                <option>Gemini</option>
+              </select>
+            </div>
+            <hr class="divider" style="margin:6px 0;">
+            <div class="role-row">
+              <span class="role-name"><b>Discriminator</b><span>attacks the thesis</span></span>
+              <select class="model" data-role="discriminator">
+                <option>Mistral large</option>
+                <option selected>Groq llama</option>
+                <option>Gemini</option>
+              </select>
+            </div>
+            <hr class="divider" style="margin:6px 0;">
+            <div class="role-row">
+              <span class="role-name"><b>Judge</b><span>rules + sets risk veto</span></span>
+              <select class="model" data-role="judge">
+                <option selected>Mistral large</option>
+                <option>Groq llama</option>
+                <option>Gemini</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- (3) Strategy params -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="flex items-center gap-12"><span class="section-num">3</span> Strategy params</h2>
+            <span class="card-title-sub">Execution envelope &amp; risk limits</span>
+          </div>
+
+          <label class="field"><span>Trade type</span></label>
+          <div class="grid grid-3" id="tradeTypes" style="margin-top:-8px;">
+            <label class="radio-card sel" data-type="Spot">
+              <input type="radio" name="tradetype" value="Spot" checked>
+              <span><span class="rtitle">Spot</span><br><span class="rsub">Buy / sell, no leverage</span></span>
+            </label>
+            <label class="radio-card" data-type="Convert">
+              <input type="radio" name="tradetype" value="Convert">
+              <span><span class="rtitle">Convert</span><br><span class="rsub">Asset-to-asset swap</span></span>
+            </label>
+            <label class="radio-card" data-type="Leverage">
+              <input type="radio" name="tradetype" value="Leverage">
+              <span><span class="rtitle">Leverage</span><br><span class="rsub">Perp long / short</span></span>
+            </label>
+          </div>
+          <div class="lev-note" id="levNote" hidden>
+            ⚠ Leverage is <strong>&nbsp;simulated only · cautionary</strong>&nbsp;- testnet backtest envelope, never live capital.
+          </div>
+
+          <hr class="divider">
+
+          <div class="grid-params">
+            <label class="field field-inline">
+              <span>Size (mUSD)</span>
+              <input type="number" class="param" data-k="sizeMUSD" value="1.0" step="0.1" min="0">
+            </label>
+            <label class="field field-inline">
+              <span>Hold (bars)</span>
+              <input type="number" class="param" data-k="holdBars" value="18" step="1" min="1">
+            </label>
+            <label class="field field-inline">
+              <span>Entry (px)</span>
+              <input type="number" class="param" data-k="entry" value="0.6412" step="0.0001">
+            </label>
+            <label class="field field-inline">
+              <span>Stop-loss (px)</span>
+              <input type="number" class="param" data-k="sl" value="0.6280" step="0.0001">
+            </label>
+            <label class="field field-inline">
+              <span>Take-profit (px)</span>
+              <input type="number" class="param" data-k="tp" value="0.6710" step="0.0001">
+            </label>
+            <label class="field field-inline">
+              <span>Predicted move (%)</span>
+              <input type="number" class="param" data-k="predictedPct" value="4.2" step="0.1">
+            </label>
+          </div>
+
+          <hr class="divider">
+
+          <label class="field field-inline">
+            <span>Max leverage</span>
+            <div class="range-wrap">
+              <input type="range" id="levRange" class="param" data-k="leverage" min="1" max="20" step="1" value="3">
+              <output id="levOut">3×</output>
+            </div>
+          </label>
+          <div class="card-title-sub" style="margin-top:6px;">Hard cap enforced by the Judge's risk veto. Above 10× the veto tightens drawdown guards.</div>
+        </section>
+
+        <!-- (4) Strategy brief -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="flex items-center gap-12"><span class="section-num">4</span> Strategy brief</h2>
+            <span class="card-title-sub">Hashed into the bundle</span>
+          </div>
+          <label class="field mb-0">
+            <span>Describe your edge</span>
+            <textarea id="brief" rows="4" placeholder="e.g. Long momentum continuation when MNT reclaims a pivot on rising hourly volume with a funding flip; fade 2σ extensions into round numbers.">Long momentum continuation when MNT reclaims a pivot on rising hourly volume with a funding flip. ATR-scaled stop, breakeven trail after +1.5%, cut size in high-vol regimes.</textarea>
+          </label>
+        </section>
+
+        <!-- (5) Privacy -->
+        <section class="card">
+          <div class="card-head">
+            <h2 class="flex items-center gap-12"><span class="section-num">5</span> Privacy</h2>
+            <span class="badge badge-blackbox" id="privBadge" hidden>Black-box</span>
+          </div>
+          <label class="subagent-row toggle" style="cursor:pointer;">
+            <span class="meta"><b>Keep strategy private (black box)</b><span>Compete on results - keep the edge sealed</span></span>
+            <input type="checkbox" id="privToggle"><span class="track"></span>
+          </label>
+          <div class="privacy-explain" id="privExplain">
+            <b style="color:var(--text)">Public.</b> Your brief, params, and debate transcript are readable on every receipt the moment a decision settles. Full transparency, full copyability.
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT: live identity / actions -->
+      <aside class="sticky-side stack">
+        <div class="card">
+          <div class="card-head">
+            <h3>Agent config hash</h3>
+            <span class="badge badge-real"><span class="dot"></span>Identity</span>
+          </div>
+          <div class="card-title-sub" style="margin-bottom:8px;">Deterministic hash of the full bundle - this is your on-chain agent ID.</div>
+          <div class="hash-preview" id="hashPreview">0x…</div>
+          <div class="flex items-center gap-8" style="margin-top:10px;">
+            <span class="badge badge-up"><span class="dot"></span>Live preview</span>
+            <span class="card-title-sub">recomputes on every edit</span>
+          </div>
+
+          <hr class="divider">
+
+          <div class="mini-stat"><span>Mode</span><b id="sumMode">-</b></div>
+          <div class="mini-stat"><span>Active feeds</span><b id="sumFeeds">-</b></div>
+          <div class="mini-stat"><span>Trade type</span><b id="sumType">-</b></div>
+          <div class="mini-stat"><span>Max leverage</span><b id="sumLev">-</b></div>
+          <div class="mini-stat"><span>Visibility</span><b id="sumVis">-</b></div>
+
+          <hr class="divider">
+
+          <div class="stack">
+            <a class="btn btn-primary btn-lg" href="backtest.html" style="width:100%;">Backtest agent →</a>
+            <button class="btn btn-ghost" id="registerBtn" style="width:100%;">Register on-chain</button>
+          </div>
+          <div class="card-title-sub center" style="margin-top:10px;" id="registerHint">
+            Registers to AgentRegistry on Mantle Sepolia.
+          </div>
+        </div>
+
+        <div class="card inset">
+          <div class="card-head"><h3 style="font-size:14px;">Contracts</h3></div>
+          <dl class="kv">
+            <dt>Registry</dt>
+            <dd><a class="hash addr" id="regLink" target="_blank" rel="noopener">-</a></dd>
+            <dt>Log</dt>
+            <dd><a class="hash addr" id="logLink" target="_blank" rel="noopener">-</a></dd>
+            <dt>Chain</dt>
+            <dd id="chainCell">-</dd>
+          </dl>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <div class="disclaimer-bar">
+    <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+    <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var M = window.MOCK || {};
+
+    /* ---- static contract refs from MOCK ---- */
+    if (M.window) document.getElementById("winLabel").textContent = M.window.symbol + " · " + M.window.bars + " bars";
+    if (M.contracts) {
+      var c = M.contracts;
+      var reg = document.getElementById("regLink");
+      reg.textContent = c.AgentRegistry.slice(0, 10) + "…" + c.AgentRegistry.slice(-6);
+      reg.href = M.explorer(c.AgentRegistry);
+      var lg = document.getElementById("logLink");
+      lg.textContent = c.DecisionLog.slice(0, 10) + "…" + c.DecisionLog.slice(-6);
+      lg.href = M.explorer(c.DecisionLog);
+      document.getElementById("chainCell").textContent = c.chain + " · " + c.chainId;
+    }
+
+    /* ---- deterministic fake hash (FNV-1a -> 64 hex) so the preview feels real ---- */
+    function bundleHash(str) {
+      var h = 0x811c9dc5 >>> 0, out = "";
+      for (var pass = 0; pass < 8; pass++) {
+        for (var i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i) + pass * 31;
+          h = Math.imul(h, 0x01000193) >>> 0;
+        }
+        out += ("0000000" + h.toString(16)).slice(-8);
+      }
+      return "0x" + out;
+    }
+
+    /* ---- state ---- */
+    var mode = "Autonomous";
+    var modeHints = {
+      Autonomous: "Agent opens, debates, and settles trades end-to-end with no human in the loop.",
+      Assisted:   "Agent proposes; you approve or veto each decision before it's logged.",
+      Solo:       "You drive every trade manually - models advise only, the Judge stays silent."
+    };
+
+    function collect() {
+      var feeds = [].slice.call(document.querySelectorAll(".subagent"))
+        .filter(function (x) { return x.checked; })
+        .map(function (x) { return x.dataset.name; });
+      var models = {};
+      [].slice.call(document.querySelectorAll(".model")).forEach(function (s) { models[s.dataset.role] = s.value; });
+      var params = {};
+      [].slice.call(document.querySelectorAll(".param")).forEach(function (p) { params[p.dataset.k] = p.value; });
+      var type = (document.querySelector('input[name="tradetype"]:checked') || {}).value || "Spot";
+      var priv = document.getElementById("privToggle").checked;
+      var brief = document.getElementById("brief").value;
+      return { mode: mode, feeds: feeds, models: models, params: params, type: type, priv: priv, brief: brief };
+    }
+
+    function recompute() {
+      var s = collect();
+      var serial = JSON.stringify(s);
+      document.getElementById("hashPreview").textContent = bundleHash(serial);
+
+      document.getElementById("sumMode").textContent = s.mode;
+      document.getElementById("sumFeeds").textContent = s.feeds.length + " / 4";
+      document.getElementById("sumType").textContent = s.type;
+      document.getElementById("sumLev").textContent = s.params.leverage + "×";
+
+      var vis = document.getElementById("sumVis");
+      if (s.priv) { vis.textContent = "Private"; vis.style.color = "var(--violet)"; }
+      else { vis.textContent = "Public"; vis.style.color = "var(--accent)"; }
+    }
+
+    /* ---- mode pills ---- */
+    var pills = document.querySelectorAll("#modePills .pill");
+    function setMode(m) {
+      mode = m;
+      pills.forEach(function (p) {
+        var on = p.dataset.mode === m;
+        p.style.borderColor = on ? "var(--accent-dim)" : "";
+        p.style.color = on ? "var(--text)" : "";
+        p.style.background = on ? "var(--accent-soft)" : "";
+      });
+      document.getElementById("modeHint").textContent = modeHints[m];
+      recompute();
+    }
+    pills.forEach(function (p) { p.addEventListener("click", function () { setMode(p.dataset.mode); }); });
+
+    /* ---- trade type radios + leverage note ---- */
+    var cards = document.querySelectorAll("#tradeTypes .radio-card");
+    cards.forEach(function (card) {
+      card.addEventListener("click", function () {
+        var input = card.querySelector("input");
+        input.checked = true;
+        cards.forEach(function (c) {
+          var on = c === card;
+          c.classList.toggle("sel", on);
+          c.classList.toggle("warn-sel", on && c.dataset.type === "Leverage");
+        });
+        document.getElementById("levNote").hidden = card.dataset.type !== "Leverage";
+        recompute();
+      });
+    });
+
+    /* ---- leverage slider ---- */
+    var lev = document.getElementById("levRange");
+    lev.addEventListener("input", function () {
+      document.getElementById("levOut").textContent = lev.value + "×";
+      recompute();
+    });
+
+    /* ---- privacy toggle ---- */
+    var priv = document.getElementById("privToggle");
+    priv.addEventListener("change", function () {
+      var ex = document.getElementById("privExplain");
+      var badge = document.getElementById("privBadge");
+      if (priv.checked) {
+        ex.classList.add("blackbox");
+        badge.hidden = false;
+        ex.innerHTML = '<b>Black-box (commit-reveal).</b> At decision time only a <b>commitment hash</b> of your thesis and verdict is logged on-chain - the reasoning stays sealed. Anyone can verify you committed <em>before</em> the outcome, but your edge is invisible until you choose to <b>reveal</b>. Compete on returns, not exposed alpha.';
+      } else {
+        ex.classList.remove("blackbox");
+        badge.hidden = true;
+        ex.innerHTML = '<b style="color:var(--text)">Public.</b> Your brief, params, and debate transcript are readable on every receipt the moment a decision settles. Full transparency, full copyability.';
+      }
+      recompute();
+    });
+
+    /* ---- generic recompute wiring ---- */
+    [].slice.call(document.querySelectorAll(".subagent, .model, .param, #brief"))
+      .forEach(function (el) {
+        el.addEventListener("input", recompute);
+        el.addEventListener("change", recompute);
+      });
+
+    /* ---- register (mock) ---- */
+    document.getElementById("registerBtn").addEventListener("click", function () {
+      var btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-bars"><i></i><i></i><i></i></span> Broadcasting…';
+      setTimeout(function () {
+        btn.innerHTML = '✓ Committed to AgentRegistry';
+        document.getElementById("registerHint").innerHTML =
+          'Tx mined on ' + (M.contracts ? M.contracts.chain : 'Mantle Sepolia') + ' · agent id = config hash.';
+      }, 1100);
+    });
+
+    /* ---- init ---- */
+    setMode("Autonomous");
+    document.getElementById("levOut").textContent = lev.value + "×";
+    recompute();
+  })();
+  </script>
+</body>
+</html>

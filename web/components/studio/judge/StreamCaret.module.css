@@ -1,0 +1,24 @@
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  border-radius: 1px;
+  animation: streamCaretBlink 1s steps(2) infinite;
+}
+
+@keyframes streamCaretBlink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* prefers-reduced-motion: globals.css kills all animation via `* { animation: none }`,
+   leaving the caret solid (opacity 1) - no per-component guard needed. */

@@ -1,0 +1,186 @@
+/* shell.css — step-progress bar + step-container layout
+   Tokens must match judge-panel.html exactly; no extra vars introduced. */
+
+/* ── Step progress bar ─────────────────────────────────────────────────── */
+
+#flow-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  user-select: none;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: .38;
+  transition: opacity .25s;
+}
+
+.flow-step.active {
+  opacity: 1;
+}
+
+.flow-step.done {
+  opacity: .65;
+}
+
+.flow-step__num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  transition: background .25s, color .25s, border-color .25s;
+  flex-shrink: 0;
+}
+
+.flow-step.active .flow-step__num {
+  background: var(--amber);
+  color: #000;
+  border-color: var(--amber);
+}
+
+.flow-step.done .flow-step__num {
+  background: rgba(245,166,35,.18);
+  color: var(--amber);
+  border-color: rgba(245,166,35,.4);
+}
+
+.flow-step__label {
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  line-height: 1.1;
+}
+
+.flow-step__title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.flow-step.active .flow-step__label {
+  color: var(--muted);
+}
+
+.flow-step.done .flow-step__label {
+  color: var(--dim);
+}
+
+.flow-stepper-divider {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  min-width: 20px;
+  max-width: 60px;
+}
+
+/* ── Step containers ────────────────────────────────────────────────────── */
+
+#flow-step1,
+#flow-step2 {
+  transition: opacity .3s;
+}
+
+/* Step 1 expanded — normal block layout for child modules */
+#flow-step1.expanded {
+  /* children lay themselves out */
+}
+
+/* Step 1 collapsed — compact one-line summary bar */
+#flow-step1.collapsed {
+  background: linear-gradient(180deg, var(--surface), var(--surface2));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#flow-step1.collapsed > *:not(#flow-summary) {
+  display: none;
+}
+
+/* Summary line shown after collapse */
+#flow-summary {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+#flow-step1.collapsed #flow-summary {
+  display: flex;
+}
+
+#flow-summary__intent {
+  font-size: 13px;
+  color: var(--text);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+
+#flow-summary__sources {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.flow-source-tag {
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(245,166,35,.12);
+  color: var(--amber);
+  border: 1px solid rgba(245,166,35,.35);
+}
+
+#flow-summary__edit {
+  font-size: 11px;
+  color: var(--dim);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--sans);
+}
+
+#flow-summary__edit:hover {
+  color: var(--amber);
+}
+
+/* Step 2 — hidden until revealed */
+#flow-step2 {
+  display: none;
+}
+
+#flow-step2.visible {
+  display: block;
+}

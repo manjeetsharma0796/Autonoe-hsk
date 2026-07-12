@@ -1,0 +1,449 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Autonoe design tokens - ported from web/mockups/index.html
+   (LOCKED landing template). Keep this palette EXACT.
+   ============================================================ */
+:root {
+  --bg: #080b12;
+  --bg2: #0c111c;
+  --panel: #0f1626;
+  --panel2: #121a2c;
+  --ink: #f4f7fb;
+  --muted: #aab8cd;
+  --faint: #8b97ad;
+  --gold: #f5a524;
+  --gold2: #ffcc66;
+  --violet: #8b5cf6;
+  --violet2: #b79cff;
+  --green: #3fe0a6;
+  --red: #ff6b6b;
+  --line: rgba(255, 255, 255, 0.08);
+  --line2: rgba(255, 255, 255, 0.045);
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+
+  /* ============================================================
+     REDESIGN FOUNDATION (Phase 0) - trading-desk / terminal.
+     See design-system/autonoe/REDESIGN-FOUNDATION.md.
+     Additive: exposes the scale the design system already defined
+     but globals.css never surfaced (root cause of hard-coded px).
+     ============================================================ */
+
+  /* Spacing - 4px base */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  --s12: 48px;
+  --s16: 64px;
+
+  /* Radius - tools tighter than marketing */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  /* Density (tool surfaces: Trade / Studio / Settings / History) */
+  --panel-pad: 16px;
+  --panel-pad-sm: 12px;
+  --grid-gap: 16px;
+  --grid-gap-sm: 12px;
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* Chart sizing presets (Phase 2; persisted to localStorage) */
+  --chart-h-compact: 240px;
+  --chart-h-standard: 360px;
+  --chart-h-tall: 520px;
+  --chart-h: var(--chart-h-standard);
+
+  /* Font CSS vars are set on <body> via next/font in layout.tsx.
+     Aliases below mirror the mockup's variable names. */
+  --mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --disp: var(--font-orbitron), sans-serif;
+  --body: var(--font-exo2), sans-serif;
+}
+
+/* Expose tokens to Tailwind v4's theme so utilities can use them. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-gold: var(--gold);
+  --color-gold2: var(--gold2);
+  --color-violet: var(--violet);
+  --color-violet2: var(--violet2);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --font-display: var(--disp);
+  --font-body: var(--body);
+  --font-mono: var(--mono);
+
+  /* Phase 0 foundation → Tailwind utilities (radius-lg, gap-grid, etc.) */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --spacing-grid: var(--grid-gap);
+  --spacing-panel: var(--panel-pad);
+}
+
+/* Tabular mono numerals for prices / balances / stats */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+::selection {
+  background: var(--gold);
+  color: #1a1206;
+}
+
+/* Scrollbars - substantial, not hairlines (Firefox + WebKit) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.wrap {
+  width: min(1180px, 92vw);
+  margin-inline: auto;
+}
+.wrap-wide {
+  width: min(1680px, 95vw);
+  margin-inline: auto;
+}
+
+/* ---------- Atmosphere: grain overlay, gradient orbs, vignette ---------- */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 80% at 50% -10%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.28;
+}
+.orb.g {
+  width: 560px;
+  height: 560px;
+  top: -180px;
+  left: -160px;
+  background: radial-gradient(circle, rgba(245, 165, 36, 0.4), transparent 68%);
+  animation: drift 22s ease-in-out infinite;
+}
+.orb.v {
+  width: 620px;
+  height: 620px;
+  top: 30vh;
+  right: -220px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent 68%);
+  animation: drift 28s ease-in-out infinite reverse;
+}
+.orb.t {
+  width: 480px;
+  height: 480px;
+  bottom: -200px;
+  left: 30vw;
+  background: radial-gradient(circle, rgba(63, 224, 166, 0.2), transparent 68%);
+  animation: drift 26s ease-in-out infinite;
+}
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(40px, -30px);
+  }
+}
+
+/* ---------- Nav (floating blurred bar, scroll-condense) ---------- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(12, 17, 28, 0.55);
+  backdrop-filter: blur(14px);
+  transition: background 0.4s ease, margin-top 0.4s ease;
+}
+.nav.scrolled {
+  background: rgba(8, 11, 18, 0.8);
+  margin-top: 10px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--disp);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  font-size: 14px;
+}
+.brand .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--gold2), var(--gold));
+  box-shadow: 0 0 14px var(--gold);
+  animation: pulse 2.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.82);
+  }
+}
+.navlinks {
+  display: flex;
+  gap: 30px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.navlinks a {
+  position: relative;
+  transition: color 0.2s;
+}
+.navlinks a:hover {
+  color: var(--ink);
+}
+.navlinks a.active {
+  color: var(--ink);
+}
+.navlinks a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  height: 1px;
+  width: 0;
+  background: var(--gold);
+  transition: width 0.25s ease;
+}
+.navlinks a:hover::after,
+.navlinks a.active::after {
+  width: 100%;
+}
+@media (max-width: 820px) {
+  .navlinks {
+    display: none;
+  }
+}
+
+/* ---------- Buttons (gold shimmer CTA + ghost) ---------- */
+.btn {
+  font-family: var(--body);
+  font-weight: 500;
+  font-size: 13.5px;
+  letter-spacing: 0.02em;
+  padding: 11px 20px;
+  border-radius: 11px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  transition: transform 0.18s ease, box-shadow 0.25s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn-gold {
+  position: relative;
+  color: #1b1305;
+  overflow: hidden;
+  background: linear-gradient(100deg, var(--gold), var(--gold2));
+  box-shadow: 0 10px 30px -10px rgba(245, 165, 36, 0.6);
+}
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-130%);
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  animation: shimmer 3.4s infinite;
+}
+@keyframes shimmer {
+  0% {
+    transform: translateX(-130%);
+  }
+  55%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+.btn-ghost {
+  border-color: var(--line);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.02);
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(245, 165, 36, 0.25);
+}
+
+/* ---------- Shared text helpers ported from the mockup ---------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold2);
+  border: 1px solid var(--line);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(245, 165, 36, 0.05);
+}
+.eyebrow .ping {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+.tag {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold2);
+}
+.h2 {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 52px);
+  line-height: 1.04;
+  margin: 16px 0 0;
+  letter-spacing: -0.01em;
+}
+.sub {
+  color: var(--muted);
+  max-width: 620px;
+  margin-top: 18px;
+  font-size: 16.5px;
+}
+
+main {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- Wallet drawer stub ---------- */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  width: min(380px, 90vw);
+  padding: 28px 26px;
+  background: linear-gradient(180deg, var(--panel), var(--bg2));
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  /* keep a (gentle) loading cue - a frozen spinner reads as "stuck" */
+  .ui-spin {
+    animation: ui-spin 1.6s linear infinite !important;
+  }
+}

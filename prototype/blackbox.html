@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Black-box Agent</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Page-local styles - extends design system, no new visual concepts */
+
+    /* Blurred config bundle */
+    .config-bundle {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .config-bundle.locked .config-secret {
+      filter: blur(5px);
+      user-select: none;
+      pointer-events: none;
+      transition: filter .35s ease;
+    }
+    .config-bundle.revealed .config-secret {
+      filter: none;
+      transition: filter .35s ease;
+    }
+    .lock-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(10, 14, 20, 0.38);
+      border-radius: var(--radius);
+      pointer-events: none;
+      transition: opacity .3s;
+      z-index: 2;
+    }
+    .config-bundle.revealed .lock-overlay {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .lock-icon {
+      font-size: 32px;
+      line-height: 1;
+    }
+    .lock-overlay .lock-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--violet);
+    }
+
+    /* Config field rows */
+    .config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .config-row:last-child { border-bottom: 0; }
+    .config-key {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-dim);
+      font-weight: 650;
+    }
+    .config-val {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* The "public record" track record panel */
+    .record-section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    /* Commit-reveal callout */
+    .callout {
+      border: 1px solid var(--violet);
+      border-radius: var(--radius);
+      background: var(--violet-soft);
+      padding: 16px 20px;
+    }
+    .callout-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .callout-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--violet);
+      letter-spacing: -.01em;
+    }
+    .callout p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .callout .accent-line { color: var(--accent); }
+
+    /* Neutral harness note */
+    .harness-note {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--bg-inset);
+      padding: 13px 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .harness-note .note-icon {
+      color: var(--info);
+      font-size: 15px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    /* Two-column layout fixed widths */
+    .bb-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .bb-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Column headers */
+    .col-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .col-head-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    /* Decision row in table - private debate cells */
+    .debate-private {
+      color: var(--violet);
+      font-size: 12px;
+      font-style: italic;
+      font-family: var(--font-mono);
+    }
+
+    /* Equity chart wrapper */
+    .chart-wrap {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    /* Reveal state chip */
+    .reveal-state {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      transition: color .3s;
+    }
+    .reveal-state.is-revealed { color: var(--accent); }
+
+    /* Section spacing */
+    .section { margin-bottom: 24px; }
+
+    /* Left column sticky context */
+    .left-sticky { position: sticky; top: 68px; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="brand" href="index.html">
+    <span class="logo-dot"></span>
+    Autonoe <small>Agent Arena</small>
+  </a>
+  <a class="nav-link" href="index.html">Arena</a>
+  <a class="nav-link" href="builder.html">Build</a>
+  <a class="nav-link" href="backtest.html">Backtest</a>
+  <a class="nav-link" href="receipt.html">Receipt</a>
+  <a class="nav-link" href="execute.html">Execute</a>
+  <a class="nav-link" href="history.html">History</a>
+  <a class="nav-link active" href="blackbox.html">Black-box</a>
+  <a class="nav-link" href="versions.html">Versions</a>
+  <span class="nav-spacer"></span>
+  <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+</nav>
+
+<main class="container">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between gap-16" style="margin-bottom:24px;">
+    <div>
+      <div class="eyebrow">Black-box Agent</div>
+      <h1 id="agent-name" style="margin-bottom:4px;">-</h1>
+      <div class="flex items-center gap-8" style="margin-top:6px;">
+        <span class="badge badge-blackbox">Private strategy</span>
+        <span class="pill" id="agent-id-pill">-</span>
+        <span class="reveal-state" id="reveal-state-label">Sealed</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-12">
+      <button class="btn btn-ghost btn-sm" id="btn-reveal" onclick="toggleReveal()">
+        🔓 Reveal config
+      </button>
+      <a class="btn btn-primary btn-sm" href="builder.html">Build a private agent →</a>
+    </div>
+  </div>
+
+  <!-- Commit-reveal callout -->
+  <div class="callout section">
+    <div class="callout-head">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="8.5" stroke="#a98bff" stroke-width="1.2"/>
+        <path d="M9 5v4.5M9 11.5v1" stroke="#a98bff" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <span class="callout-title">Commit-reveal: trust the record, not the recipe</span>
+    </div>
+    <p>
+      The strategy code, model weights, and parameters are <strong style="color:var(--violet);">sealed on-chain</strong> until the owner chooses to reveal them.
+      You never need to see the recipe to verify the cooking -
+      every decision is logged bar-by-bar to <span class="accent-line">Mantle Sepolia</span> by a
+      <span class="accent-line">neutral referee harness</span> before outcomes are known.
+      The on-chain record is the truth; the hidden config is just an explanation of how it got there.
+    </p>
+  </div>
+
+  <!-- Main two-column grid -->
+  <div class="bb-grid">
+
+    <!-- LEFT: What stays private -->
+    <div>
+      <div class="col-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="7" width="12" height="8" rx="2" stroke="#a98bff" stroke-width="1.3"/>
+          <path d="M5 7V5a3 3 0 116 0v2" stroke="#a98bff" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="col-head-title" style="color:var(--violet);">What stays private</span>
+      </div>
+
+      <!-- Config hash (always public) -->
+      <div class="card flat section" style="background:var(--bg-inset);border:1px solid var(--border);">
+        <div class="card-head" style="margin-bottom:10px;">
+          <span style="font-size:12.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Config Commitment Hash</span>
+          <span class="badge badge-real">Always public</span>
+        </div>
+        <a id="config-hash-link" href="#" target="_blank" class="hash" style="font-size:12px;word-break:break-all;display:block;line-height:1.6;">-</a>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-dim);">
+          SHA-256 of the sealed config bundle. Anyone can verify the hash matches when the config is revealed.
+        </div>
+      </div>
+
+      <!-- Sealed config bundle -->
+      <div class="section">
+        <div class="record-section-label">Sealed configuration bundle</div>
+        <div class="config-bundle locked" id="config-bundle">
+          <!-- Lock overlay -->
+          <div class="lock-overlay" id="lock-overlay">
+            <span class="lock-icon">🔒</span>
+            <span class="lock-label">Sealed until reveal</span>
+          </div>
+          <!-- Secret content - blurred when locked -->
+          <div class="config-secret" id="config-secret">
+            <div class="config-row">
+              <span class="config-key">Strategy type</span>
+              <span class="config-val">Vault Momentum v2</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Entry signal</span>
+              <span class="config-val">Custom HMM + order-flow imbalance</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Models</span>
+              <span class="config-val">3 × proprietary LSTM ensembles</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Confidence threshold</span>
+              <span class="config-val">0.68</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Risk policy</span>
+              <span class="config-val">Volatility-regime adaptive</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Max leverage</span>
+              <span class="config-val">2×</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Stop-loss basis</span>
+              <span class="config-val">2.1 × ATR(14)</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Take-profit basis</span>
+              <span class="config-val">3.8 × ATR(14)</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Position sizing</span>
+              <span class="config-val">Kelly-fraction 0.22, vol-capped</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Lookback window</span>
+              <span class="config-val">96 bars</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Exit logic</span>
+              <span class="config-val">Sealed exit model v1.3</span>
+            </div>
+            <div class="config-row">
+              <span class="config-key">Debate weights</span>
+              <span class="config-val">Supporter 0.35 / Discriminator 0.35 / Judge 0.30</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;" id="reveal-cta">
+          <button class="btn btn-ghost btn-sm" onclick="toggleReveal()" style="border-color:var(--violet);color:var(--violet);width:100%;">
+            🔓 Click to reveal configuration (commit-reveal)
+          </button>
+        </div>
+        <div style="margin-top:10px;display:none;" id="revealed-note">
+          <div class="flex items-center gap-8">
+            <span class="badge badge-up"><span class="dot"></span>Revealed</span>
+            <span style="font-size:12px;color:var(--text-dim);">Config hash verified - content matches commitment</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Harness note -->
+      <div class="harness-note">
+        <span class="note-icon">ℹ</span>
+        <span>
+          <strong style="color:var(--text);">Neutral-harness guarantee.</strong>
+          Results are trustworthy because a <em>referee</em> - not the agent owner - ran the backtest bar-by-bar and committed each decision to the chain <strong>before the bar closed</strong>. The owner cannot edit or replay decisions retroactively.
+        </span>
+      </div>
+    </div>
+
+    <!-- RIGHT: What is public & verified -->
+    <div>
+      <div class="col-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="#28e0a0" stroke-width="1.3"/>
+          <path d="M5 8l2 2 4-4" stroke="#28e0a0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="col-head-title" style="color:var(--accent);">What is public &amp; verified</span>
+      </div>
+
+      <!-- Track record stats -->
+      <div class="section">
+        <div class="record-section-label">On-chain track record</div>
+        <div class="grid grid-2 gap-8" id="stats-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Equity chart -->
+      <div class="section">
+        <div class="record-section-label">Equity curve vs buy-and-hold baseline</div>
+        <div class="chart-wrap">
+          <svg class="equity-svg" id="equity-svg" viewBox="0 0 540 180" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#28e0a0" stop-opacity=".45"/>
+                <stop offset="100%" stop-color="#28e0a0" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- Populated by JS -->
+          </svg>
+          <div class="chart-legend">
+            <span><span class="swatch ai"></span>Obsidian Vault (AI)</span>
+            <span><span class="swatch baseline"></span>Buy &amp; Hold baseline</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decisions table -->
+      <div class="section">
+        <div class="record-section-label">Decision log - on-chain verified</div>
+        <div class="card flat" style="padding:0;overflow:hidden;background:var(--bg-inset);border:1px solid var(--border);">
+          <table class="table" id="decisions-table">
+            <thead>
+              <tr>
+                <th>Bar</th>
+                <th>Direction</th>
+                <th class="right">Entry</th>
+                <th class="right">Outcome</th>
+                <th>Risk</th>
+                <th>Debate</th>
+                <th>Tx</th>
+              </tr>
+            </thead>
+            <tbody id="decisions-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-dim);">
+          Debate reasoning is sealed for this agent. Outcomes and tx hashes are always public.
+        </div>
+      </div>
+
+      <!-- Registry info -->
+      <div class="section">
+        <div class="record-section-label">Registry &amp; contracts</div>
+        <div class="card flat" style="background:var(--bg-inset);border:1px solid var(--border);">
+          <dl class="kv" id="registry-kv">
+            <!-- Populated by JS -->
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Disclaimer bar -->
+<div class="disclaimer-bar">
+  <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+  <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+</div>
+
+<!-- Reveal config modal (shown after reveal) -->
+<div class="modal-backdrop" id="reveal-modal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h2 style="color:var(--accent);">Config Revealed</h2>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div class="flex items-center gap-8" style="margin-bottom:14px;">
+      <span class="badge badge-up"><span class="dot"></span>Hash verified</span>
+      <span class="badge badge-blackbox">Obsidian Vault</span>
+    </div>
+    <p style="font-size:13.5px;margin-bottom:14px;">
+      The configuration bundle has been decrypted from the sealed commitment.
+      The SHA-256 of the revealed content matches the on-chain commitment hash -
+      confirming no retroactive edits.
+    </p>
+    <div class="card inset" style="margin-bottom:16px;">
+      <div style="font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:700;">Commitment hash</div>
+      <span class="hash" id="modal-hash" style="font-size:11.5px;">-</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-dim);">
+      In production, the reveal transaction would be submitted on-chain. Anyone can re-hash the revealed config and compare to the commitment.
+    </div>
+    <div style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="closeModal()">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var revealed = false;
+
+  /* ------------------------------------------------------------------ */
+  /* Helpers                                                              */
+  /* ------------------------------------------------------------------ */
+  function fmt(n, decimals) {
+    return Number(n).toFixed(decimals === undefined ? 2 : decimals);
+  }
+  function sign(n) { return n >= 0 ? '+' : ''; }
+  function gradeClass(g) { return 'grade grade-' + g; }
+  function shortHash(h) {
+    if (!h) return '-';
+    if (h.length <= 18) return h;
+    return h.slice(0, 10) + '…' + h.slice(-6);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Find the black-box agent (first isPrivate)                          */
+  /* ------------------------------------------------------------------ */
+  var agent = null;
+  for (var i = 0; i < MOCK.agents.length; i++) {
+    if (MOCK.agents[i].isPrivate && MOCK.agents[i].id === 'agt_obsidian') {
+      agent = MOCK.agents[i];
+      break;
+    }
+  }
+  if (!agent) {
+    for (var j = 0; j < MOCK.agents.length; j++) {
+      if (MOCK.agents[j].isPrivate) { agent = MOCK.agents[j]; break; }
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Header                                                               */
+  /* ------------------------------------------------------------------ */
+  document.getElementById('agent-name').textContent = agent.name;
+  document.getElementById('agent-id-pill').textContent = agent.id;
+
+  /* ------------------------------------------------------------------ */
+  /* Config hash (always visible)                                         */
+  /* ------------------------------------------------------------------ */
+  var hashLink = document.getElementById('config-hash-link');
+  hashLink.textContent = agent.configHash;
+  hashLink.href = MOCK.explorer(agent.configHash);
+  hashLink.target = '_blank';
+
+  document.getElementById('modal-hash').textContent = agent.configHash;
+
+  /* ------------------------------------------------------------------ */
+  /* Stats grid                                                           */
+  /* ------------------------------------------------------------------ */
+  var statsGrid = document.getElementById('stats-grid');
+  var statsData = [
+    { label: 'Net Return', value: sign(agent.netReturnPct) + fmt(agent.netReturnPct) + '%', cls: agent.netReturnPct >= 0 ? 'up' : 'down' },
+    { label: 'vs Baseline', value: sign(agent.netReturnPct - agent.baselineReturnPct) + fmt(agent.netReturnPct - agent.baselineReturnPct) + '%', cls: (agent.netReturnPct - agent.baselineReturnPct) >= 0 ? 'up' : 'down' },
+    { label: 'Win Rate', value: fmt(agent.winRatePct) + '%', cls: '' },
+    { label: 'Profit Factor', value: fmt(agent.profitFactor), cls: '' },
+  ];
+  statsData.forEach(function (s) {
+    var el = document.createElement('div');
+    el.className = 'stat';
+    el.innerHTML =
+      '<div class="stat-label">' + s.label + '</div>' +
+      '<div class="stat-value sm ' + s.cls + ' num">' + s.value + '</div>';
+    statsGrid.appendChild(el);
+  });
+
+  /* Grade + trades row */
+  var gradeRow = document.createElement('div');
+  gradeRow.className = 'stat';
+  gradeRow.style.gridColumn = '1';
+  gradeRow.innerHTML =
+    '<div class="stat-label">Grade</div>' +
+    '<div class="stat-value sm"><span class="' + gradeClass(agent.grade) + '">' + agent.grade.toUpperCase() + '</span></div>';
+  statsGrid.appendChild(gradeRow);
+
+  var tradesRow = document.createElement('div');
+  tradesRow.className = 'stat';
+  tradesRow.innerHTML =
+    '<div class="stat-label">Decisions</div>' +
+    '<div class="stat-value sm num">' + agent.trades + '</div>';
+  statsGrid.appendChild(tradesRow);
+
+  /* ------------------------------------------------------------------ */
+  /* Equity chart (inline SVG)                                           */
+  /* ------------------------------------------------------------------ */
+  var svgEl = document.getElementById('equity-svg');
+  var W = 540, H = 180, PAD_L = 44, PAD_R = 12, PAD_T = 12, PAD_B = 28;
+  var plotW = W - PAD_L - PAD_R;
+  var plotH = H - PAD_T - PAD_B;
+
+  var ai = MOCK.aiEquity;
+  var bl = MOCK.baselineEquity;
+  var allVals = ai.concat(bl);
+  var minV = Math.min.apply(null, allVals);
+  var maxV = Math.max.apply(null, allVals);
+  var range = maxV - minV || 1;
+
+  function xOf(i, len) { return PAD_L + (i / (len - 1)) * plotW; }
+  function yOf(v) { return PAD_T + plotH - ((v - minV) / range) * plotH; }
+
+  function makePath(arr) {
+    return arr.map(function (v, i) {
+      return (i === 0 ? 'M' : 'L') + xOf(i, arr.length).toFixed(1) + ',' + yOf(v).toFixed(1);
+    }).join(' ');
+  }
+
+  function makeArea(arr) {
+    var d = makePath(arr);
+    var last = arr.length - 1;
+    d += ' L' + xOf(last, arr.length).toFixed(1) + ',' + (PAD_T + plotH).toFixed(1);
+    d += ' L' + PAD_L.toFixed(1) + ',' + (PAD_T + plotH).toFixed(1) + ' Z';
+    return d;
+  }
+
+  /* Grid lines + labels */
+  var gridLevels = [minV, minV + range * 0.333, minV + range * 0.667, maxV];
+  var gridSVG = '';
+  gridLevels.forEach(function (v) {
+    var y = yOf(v).toFixed(1);
+    gridSVG += '<line class="grid-line" x1="' + PAD_L + '" y1="' + y + '" x2="' + (W - PAD_R) + '" y2="' + y + '"/>';
+    gridSVG += '<text class="axis-label" x="' + (PAD_L - 4) + '" y="' + (parseFloat(y) + 3.5).toFixed(1) + '" text-anchor="end">' + fmt(v, 0) + '</text>';
+  });
+
+  /* X labels */
+  var xLabels = ['Sep', 'Oct', 'Nov'];
+  xLabels.forEach(function (lbl, idx) {
+    var x = PAD_L + (idx / (xLabels.length - 1)) * plotW;
+    gridSVG += '<text class="axis-label" x="' + x.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + lbl + '</text>';
+  });
+
+  svgEl.innerHTML =
+    '<defs><linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#28e0a0" stop-opacity=".45"/>' +
+      '<stop offset="100%" stop-color="#28e0a0" stop-opacity="0"/>' +
+    '</linearGradient></defs>' +
+    gridSVG +
+    '<path class="area-ai" d="' + makeArea(ai) + '"/>' +
+    '<path class="line-baseline" d="' + makePath(bl) + '"/>' +
+    '<path class="line-ai" d="' + makePath(ai) + '"/>';
+
+  /* ------------------------------------------------------------------ */
+  /* Decisions table (only obsidian decisions)                           */
+  /* ------------------------------------------------------------------ */
+  var tbody = document.getElementById('decisions-tbody');
+  var decs = MOCK.decisions.filter(function (d) { return d.agentId === agent.id; });
+
+  decs.forEach(function (d) {
+    var tr = document.createElement('tr');
+    tr.className = 'clickable';
+
+    var vetoBadge = d.riskVeto.passed
+      ? '<span class="badge badge-up">PASSED</span>'
+      : '<span class="badge badge-down">VETOED</span>';
+
+    var isPrivateDebate = d.debate && d.debate.supporter && d.debate.supporter.indexOf('[strategy private') === 0;
+    var debateCell = isPrivateDebate
+      ? '<span class="debate-private">sealed</span>'
+      : (d.debate ? d.debate.verdict : '-');
+
+    var outcome = d.outcomePct;
+    var outcomeStr = outcome === 0 ? '-' : (sign(outcome) + fmt(outcome) + '%');
+    var outcomeCls = outcome > 0 ? 'up' : (outcome < 0 ? 'down' : 'muted');
+
+    var dirCls = d.direction === 'LONG' ? 'up' : 'down';
+    var txUrl = MOCK.explorer(d.txHash);
+
+    tr.innerHTML =
+      '<td class="num muted">' + d.bar + '</td>' +
+      '<td class="' + dirCls + '" style="font-weight:700;font-size:13px;">' + d.direction + '</td>' +
+      '<td class="num right">' + fmt(d.entry, 4) + '</td>' +
+      '<td class="num right ' + outcomeCls + '">' + outcomeStr + '</td>' +
+      '<td>' + vetoBadge + '</td>' +
+      '<td>' + debateCell + '</td>' +
+      '<td>' +
+        '<a href="' + txUrl + '" target="_blank" class="hash" title="' + d.txHash + '" style="font-size:11.5px;">' +
+          shortHash(d.txHash) +
+        '</a>' +
+      '</td>';
+
+    tbody.appendChild(tr);
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* Registry KV                                                          */
+  /* ------------------------------------------------------------------ */
+  var kv = document.getElementById('registry-kv');
+
+  function addKV(label, valueHTML) {
+    var dt = document.createElement('dt');
+    dt.textContent = label;
+    var dd = document.createElement('dd');
+    dd.innerHTML = valueHTML;
+    kv.appendChild(dt);
+    kv.appendChild(dd);
+  }
+
+  addKV('Chain', MOCK.contracts.chain + ' (chainId ' + MOCK.contracts.chainId + ')');
+  addKV('Agent ID', '<span class="hash addr" style="font-size:13px;">' + agent.id + '</span>');
+  addKV('Owner', '<a href="' + MOCK.explorer(agent.owner) + '" target="_blank" class="hash addr" style="font-size:12px;">' + shortHash(agent.owner) + '</a>');
+  addKV('Version', 'v' + agent.version + (agent.parentId ? ' (parent: ' + agent.parentId + ')' : ' (genesis)'));
+  addKV('AgentRegistry', '<a href="' + MOCK.explorer(MOCK.contracts.AgentRegistry) + '" target="_blank" class="hash" style="font-size:12px;">' + shortHash(MOCK.contracts.AgentRegistry) + '</a>');
+  addKV('DecisionLog', '<a href="' + MOCK.explorer(MOCK.contracts.DecisionLog) + '" target="_blank" class="hash" style="font-size:12px;">' + shortHash(MOCK.contracts.DecisionLog) + '</a>');
+  addKV('Backtest window', MOCK.window.label);
+  addKV('Symbol / venue', MOCK.window.symbol + ' · ' + MOCK.window.venue + ' · ' + MOCK.window.bars + ' bars');
+
+  /* ------------------------------------------------------------------ */
+  /* Toggle reveal                                                        */
+  /* ------------------------------------------------------------------ */
+  window.toggleReveal = function () {
+    revealed = !revealed;
+    var bundle = document.getElementById('config-bundle');
+    var stateLabel = document.getElementById('reveal-state-label');
+    var revealCTA = document.getElementById('reveal-cta');
+    var revealedNote = document.getElementById('revealed-note');
+    var btnReveal = document.getElementById('btn-reveal');
+
+    if (revealed) {
+      bundle.classList.remove('locked');
+      bundle.classList.add('revealed');
+      stateLabel.textContent = 'Revealed';
+      stateLabel.classList.add('is-revealed');
+      revealCTA.style.display = 'none';
+      revealedNote.style.display = 'block';
+      btnReveal.textContent = '🔒 Re-seal config';
+      document.getElementById('reveal-modal').removeAttribute('hidden');
+    } else {
+      bundle.classList.add('locked');
+      bundle.classList.remove('revealed');
+      stateLabel.textContent = 'Sealed';
+      stateLabel.classList.remove('is-revealed');
+      revealCTA.style.display = 'block';
+      revealedNote.style.display = 'none';
+      btnReveal.textContent = '🔓 Reveal config';
+    }
+  };
+
+  window.closeModal = function () {
+    document.getElementById('reveal-modal').setAttribute('hidden', '');
+  };
+
+})();
+</script>
+</body>
+</html>

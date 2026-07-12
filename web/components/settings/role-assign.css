@@ -1,0 +1,49 @@
+/* Role -> model assignment list. Flat terminal, hairline-divided rows. */
+
+.roleassign {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.ra-group + .ra-group {
+  border-top: 1px solid var(--line);
+}
+.ra-gtitle {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 15px 18px 5px;
+}
+.ra-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--line2);
+}
+.ra-meta {
+  flex: 1;
+  min-width: 0;
+}
+.ra-role {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.ra-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.ra-note {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+  margin-top: 14px;
+  padding: 0 2px;
+  line-height: 1.5;
+}

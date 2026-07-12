@@ -1,0 +1,172 @@
+/* Canonical button system - one source of truth, used app-wide.
+   Tokens from globals.css. Flat terminal aesthetic, no layout-shift hovers. */
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--body);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.ui-btn:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ui-btn.block {
+  width: 100%;
+}
+.ui-btn svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+}
+
+/* sizes */
+.ui-btn.s-sm {
+  font-size: 12.5px;
+  padding: 7px 12px;
+}
+.ui-btn.s-md {
+  font-size: 13.5px;
+  padding: 10px 16px;
+}
+.ui-btn.s-lg {
+  font-size: 15px;
+  padding: 13px 20px;
+}
+
+/* variants */
+.ui-btn.v-gold {
+  color: #1b1305;
+  background: linear-gradient(100deg, var(--gold), var(--gold2));
+}
+.ui-btn.v-gold:not(:disabled):hover {
+  filter: brightness(1.06);
+}
+.ui-btn.v-ghost {
+  color: var(--ink);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+.ui-btn.v-ghost:not(:disabled):hover {
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.04);
+}
+.ui-btn.v-violet {
+  color: var(--violet2);
+  border-color: rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.1);
+}
+.ui-btn.v-violet:not(:disabled):hover {
+  border-color: var(--violet);
+  background: rgba(139, 92, 246, 0.16);
+}
+.ui-btn.v-danger {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.08);
+}
+.ui-btn.v-danger:not(:disabled):hover {
+  border-color: var(--red);
+}
+
+/* spinner */
+.ui-spin {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: ui-spin 0.7s linear infinite;
+}
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ui-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.ui-loader .ui-spin {
+  color: var(--gold2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-spin {
+    animation-duration: 1.6s;
+  }
+}
+
+/* icon button */
+.ui-iconbtn {
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--muted);
+  touch-action: manipulation;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.ui-iconbtn:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 2px;
+}
+.ui-iconbtn.s-sm {
+  width: 30px;
+  height: 30px;
+}
+/* finger-friendly hit area on touch without enlarging the visual box elsewhere */
+@media (pointer: coarse) {
+  .ui-iconbtn.s-sm {
+    width: 44px;
+    height: 44px;
+  }
+}
+.ui-iconbtn.s-md {
+  width: 36px;
+  height: 36px;
+}
+.ui-iconbtn svg {
+  width: 16px;
+  height: 16px;
+}
+.ui-iconbtn.v-bare {
+  border-color: var(--line2);
+}
+.ui-iconbtn.v-bare:hover {
+  color: var(--ink);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+.ui-iconbtn.on.good {
+  color: var(--green);
+  border-color: rgba(63, 224, 166, 0.4);
+  background: rgba(63, 224, 166, 0.1);
+}
+.ui-iconbtn.on.bad {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.1);
+}

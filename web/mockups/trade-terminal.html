@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autonoe — Trade (terminal redesign proof)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#080b12; --bg2:#0c111c; --panel:#0f1626; --panel2:#121a2c;
+  --ink:#f4f7fb; --muted:#8c9ab3; --faint:#5b6981;
+  --gold:#f5a524; --gold2:#ffcc66; --violet:#8b5cf6; --violet2:#b79cff;
+  --green:#3fe0a6; --red:#ff6b6b;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.045);
+  --disp:'Orbitron',sans-serif; --body:'Exo 2',sans-serif; --mono:'JetBrains Mono',monospace;
+  /* foundation tokens */
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;
+  --r-sm:6px;--r-md:8px;--r-lg:12px;--r-pill:999px;
+  --panel-pad:16px; --grid-gap:16px; --dur:180ms; --ease:cubic-bezier(.2,.6,.2,1);
+  --chart-h:360px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:300;
+  line-height:1.55;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.up{color:var(--green)} .down{color:var(--red)}
+.wrap{width:min(1320px,94vw);margin-inline:auto}
+
+/* nav — dense, no orbs on tool surface */
+.nav{display:flex;align-items:center;justify-content:space-between;
+  padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);margin-bottom:var(--s5)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;
+  letter-spacing:.22em;font-size:13px}
+.brand .dot{width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,var(--gold2),var(--gold));box-shadow:0 0 12px var(--gold)}
+.navlinks{display:flex;gap:22px;font-size:12.5px;letter-spacing:.04em;color:var(--muted)}
+.navlinks a.active{color:var(--ink)} .navlinks a{position:relative;cursor:pointer}
+.navlinks a.active::after{content:"";position:absolute;left:0;bottom:-19px;height:2px;width:100%;background:var(--gold)}
+.navright{display:flex;align-items:center;gap:var(--s3)}
+/* global model chip in the nav */
+.model-chip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
+  color:var(--muted);border:1px solid var(--line);background:rgba(139,92,246,.06);
+  padding:6px 11px;border-radius:var(--r-pill);cursor:pointer;transition:border-color var(--dur)}
+.model-chip:hover{border-color:var(--violet)}
+.model-chip .ic{width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet)}
+.model-chip b{color:var(--violet2);font-weight:600}
+.btn-gold{font-family:var(--body);font-weight:600;font-size:12.5px;color:#1b1305;
+  background:linear-gradient(100deg,var(--gold),var(--gold2));padding:8px 16px;border:0;
+  border-radius:var(--r-md);cursor:pointer}
+
+/* terminal header row */
+.crumbs{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s4)}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold2)}
+.ttl{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:.01em}
+.badge{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);
+  font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:5px 11px;border-radius:var(--r-pill)}
+.badge .ping{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+/* MAIN GRID — wide chart column + AI rail. density kills dead space */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:var(--grid-gap);align-items:start}
+.left{display:flex;flex-direction:column;gap:var(--grid-gap)}
+
+.term-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.term-head{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);
+  border-bottom:1px solid var(--line)}
+.term-head .pair{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:600;font-size:13px}
+.term-head .px{margin-left:6px;font-family:var(--mono);font-size:16px;font-weight:600}
+.term-head .chg{font-family:var(--mono);font-size:12px;padding:2px 7px;border-radius:var(--r-sm);
+  background:rgba(63,224,166,.1)}
+.seg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.seg button{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);
+  background:transparent;border:0;padding:6px 11px;cursor:pointer;transition:all var(--dur)}
+.seg button.on{background:var(--gold);color:#1b1305;font-weight:600}
+.seg button:not(.on):hover{color:var(--ink);background:rgba(255,255,255,.04)}
+
+.chartwrap{position:relative;height:var(--chart-h);background:linear-gradient(180deg,#0a0e16,#0b0f18)}
+.chartwrap svg{width:100%;height:100%}
+.resize-handle{position:absolute;left:0;right:0;bottom:0;height:14px;display:flex;align-items:center;
+  justify-content:center;cursor:row-resize;color:var(--faint);font-size:10px;letter-spacing:2px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.25))}
+.resize-handle:hover{color:var(--gold2)}
+
+/* dense stat strip — replaces airy 4-card grid */
+.stat-strip{display:flex;align-items:stretch;border-top:1px solid var(--line)}
+.stat-strip .cell{flex:1;padding:var(--s3) var(--s4);border-right:1px solid var(--line2)}
+.stat-strip .cell:last-child{border-right:0}
+.stat-strip .k{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.stat-strip .v{margin-top:4px;font-family:var(--mono);font-size:14px;font-weight:600}
+
+/* two dense panels side by side under the chart — no trapped whitespace */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:var(--grid-gap)}
+.pbody{padding:var(--panel-pad)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--s3)}
+.field label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.field .ctrl{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);
+  border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;font-family:var(--mono);font-size:14px}
+.field .ctrl .sym{color:var(--muted);font-size:12px}
+.exec{width:100%;margin-top:var(--s2);font-family:var(--body);font-weight:600;font-size:13px;color:#1b1305;
+  background:linear-gradient(100deg,var(--gold),var(--gold2));border:0;border-radius:var(--r-md);padding:12px;cursor:pointer}
+.balrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line2)}
+.balrow:last-child{border-bottom:0}
+.balrow .a{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.balrow .a .ch{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:700;color:#1b1305}
+.balrow .b{font-family:var(--mono);font-size:13px;font-weight:600}
+
+/* AI RAIL — model picker + streaming reasoning (the run surface) */
+.rail{display:flex;flex-direction:column;gap:var(--grid-gap)}
+.tabs{display:flex;gap:4px;padding:var(--s2);border-bottom:1px solid var(--line)}
+.tabs button{flex:1;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);background:transparent;border:1px solid transparent;border-radius:var(--r-sm);padding:7px;cursor:pointer}
+.tabs button.on{color:var(--violet2);background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3)}
+.intent{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-md);
+  color:var(--ink);font-family:var(--body);font-size:13.5px;padding:11px 12px;resize:none;min-height:64px}
+.runrow{display:flex;align-items:center;gap:var(--s2);margin:var(--s3) 0}
+.runrow .model-chip{flex:1;justify-content:flex-start}
+.gen{font-family:var(--body);font-weight:600;font-size:12.5px;color:var(--violet2);
+  background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.35);border-radius:var(--r-md);
+  padding:9px 14px;cursor:pointer;white-space:nowrap}
+/* stream-panel */
+.stream-panel{margin-top:var(--s3);border:1px solid var(--line);border-radius:var(--r-md);background:#0a0e16}
+.stream-head{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--line2);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.stream-head .live{width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet);
+  animation:bl 1.4s infinite}
+@keyframes bl{50%{opacity:.3}}
+.stream-body{padding:11px;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--muted);max-height:150px;overflow:hidden}
+.stream-body .d{color:var(--faint)}
+.stream-body .cur{color:var(--violet2)}
+.tribunal{display:flex;align-items:center;gap:6px;padding:11px;border-top:1px solid var(--line2);
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint)}
+.tribunal .n{padding:3px 8px;border:1px solid var(--line);border-radius:var(--r-pill)}
+.tribunal .s{color:var(--green);border-color:rgba(63,224,166,.3)}
+.tribunal .x{color:var(--red);border-color:rgba(255,107,107,.3)}
+.tribunal .j{color:var(--gold2);border-color:rgba(245,165,36,.3)}
+.note{font-family:var(--mono);font-size:11px;color:var(--faint);margin:var(--s6) 0 var(--s8);text-align:center}
+.note b{color:var(--gold2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- nav: dense, model chip lives globally -->
+  <nav class="nav">
+    <div class="brand"><span class="dot"></span> AUTONOE</div>
+    <div class="navlinks">
+      <a>Home</a><a>Markets</a><a class="active">Trade</a><a>Studio</a><a>History</a><a>Settings</a>
+    </div>
+    <div class="navright">
+      <span class="model-chip"><span class="ic"></span> groq · <b>llama-3.3-70b</b> ▾</span>
+      <button class="btn-gold">Wallet →</button>
+    </div>
+  </nav>
+
+  <div class="crumbs">
+    <span class="tag">Terminal</span>
+    <span class="ttl">Trade</span>
+    <span class="badge"><span class="ping"></span> Mantle Sepolia · block 8,412,907</span>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: wide chart + dense panels -->
+    <div class="left">
+      <section class="term-panel">
+        <div class="term-head">
+          <span class="pair">◆ mUSD/WMNT <span class="px num">1.2843</span> <span class="chg num up">▲ 4.21%</span></span>
+          <span class="seg">
+            <button>Compact</button>
+            <button class="on">Standard</button>
+            <button>Tall</button>
+            <button>Focus</button>
+          </span>
+        </div>
+        <div class="chartwrap">
+          <!-- faux candlesticks -->
+          <svg viewBox="0 0 1000 360" preserveAspectRatio="none">
+            <g stroke="rgba(255,255,255,.05)">
+              <line x1="0" y1="90" x2="1000" y2="90"/><line x1="0" y1="180" x2="1000" y2="180"/><line x1="0" y1="270" x2="1000" y2="270"/>
+            </g>
+            <g>
+              <!-- generated-ish candles -->
+              <g stroke="#3fe0a6" fill="#3fe0a6">
+                <line x1="40" y1="210" x2="40" y2="160"/><rect x="34" y="175" width="12" height="25"/>
+                <line x1="90" y1="200" x2="90" y2="150"/><rect x="84" y="160" width="12" height="30"/>
+                <line x1="190" y1="180" x2="190" y2="120"/><rect x="184" y="135" width="12" height="35"/>
+                <line x1="290" y1="150" x2="290" y2="100"/><rect x="284" y="115" width="12" height="28"/>
+                <line x1="490" y1="140" x2="490" y2="95"/><rect x="484" y="105" width="12" height="30"/>
+                <line x1="690" y1="120" x2="690" y2="70"/><rect x="684" y="82" width="12" height="30"/>
+                <line x1="790" y1="105" x2="790" y2="60"/><rect x="784" y="70" width="12" height="28"/>
+                <line x1="890" y1="95" x2="890" y2="50"/><rect x="884" y="60" width="12" height="28"/>
+              </g>
+              <g stroke="#ff6b6b" fill="#ff6b6b">
+                <line x1="140" y1="205" x2="140" y2="150"/><rect x="134" y="165" width="12" height="30"/>
+                <line x1="240" y1="175" x2="240" y2="125"/><rect x="234" y="140" width="12" height="28"/>
+                <line x1="340" y1="160" x2="340" y2="110"/><rect x="334" y="128" width="12" height="25"/>
+                <line x1="390" y1="170" x2="390" y2="118"/><rect x="384" y="135" width="12" height="28"/>
+                <line x1="440" y1="165" x2="440" y2="112"/><rect x="434" y="128" width="12" height="26"/>
+                <line x1="540" y1="150" x2="540" y2="100"/><rect x="534" y="118" width="12" height="26"/>
+                <line x1="590" y1="145" x2="590" y2="95"/><rect x="584" y="110" width="12" height="28"/>
+                <line x1="640" y1="135" x2="640" y2="85"/><rect x="634" y="100" width="12" height="26"/>
+                <line x1="740" y1="118" x2="740" y2="68"/><rect x="734" y="82" width="12" height="26"/>
+                <line x1="840" y1="108" x2="840" y2="58"/><rect x="834" y="72" width="12" height="26"/>
+              </g>
+            </g>
+            <polyline points="40,185 90,170 140,178 190,150 240,152 290,128 340,138 390,148 440,140 490,118 540,128 590,120 640,110 690,95 740,98 790,82 840,86 890,72" fill="none" stroke="rgba(245,165,36,.55)" stroke-width="1.5"/>
+          </svg>
+          <div class="resize-handle">⋮⋮ drag to resize</div>
+        </div>
+        <div class="stat-strip">
+          <div class="cell"><div class="k">24h Low</div><div class="v num">1.3018</div></div>
+          <div class="cell"><div class="k">24h High</div><div class="v num">1.2210</div></div>
+          <div class="cell"><div class="k">24h Vol (mUSD)</div><div class="v num">842,109</div></div>
+          <div class="cell"><div class="k">Liquidity</div><div class="v num">3.91M</div></div>
+        </div>
+      </section>
+
+      <div class="row2">
+        <section class="term-panel">
+          <div class="term-head"><span class="pair">⇄ Swap · Execute</span></div>
+          <div class="pbody">
+            <div class="field"><label>From · balance 12,500.00</label>
+              <div class="ctrl"><span class="num">1,000</span><span class="sym">mUSD ▾</span></div></div>
+            <div class="field"><label>To (est.)</label>
+              <div class="ctrl"><span class="num">778.7</span><span class="sym">WMNT ▾</span></div></div>
+            <button class="exec">Execute swap →</button>
+          </div>
+        </section>
+        <section class="term-panel">
+          <div class="term-head"><span class="pair">▣ Agent Wallet · Balances</span></div>
+          <div class="pbody">
+            <div class="balrow"><span class="a"><span class="ch" style="background:var(--gold2)">m</span> mUSD</span><span class="b num">12,500.00</span></div>
+            <div class="balrow"><span class="a"><span class="ch" style="background:var(--green)">W</span> WMNT</span><span class="b num">318.40</span></div>
+            <div class="balrow"><span class="a"><span class="ch" style="background:var(--violet2)">B</span> BTC</span><span class="b num">0.0140</span></div>
+            <div class="balrow"><span class="a"><span class="ch" style="background:#7aa2ff">E</span> ETH</span><span class="b num">1.204</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- RIGHT: AI rail — picker + streaming reasoning -->
+    <aside class="rail">
+      <section class="term-panel">
+        <div class="tabs"><button class="on">Quick Thesis</button><button>Assistant</button></div>
+        <div class="pbody">
+          <textarea class="intent" readonly>I think WMNT runs into the Mantle upgrade. Build a 4h swing thesis against mUSD.</textarea>
+          <div class="runrow">
+            <span class="model-chip"><span class="ic"></span> groq · <b>llama-3.3-70b</b> ▾</span>
+            <button class="gen">Generate ▸</button>
+          </div>
+          <div class="stream-panel">
+            <div class="stream-head"><span class="live"></span> reasoning · streaming</div>
+            <div class="stream-body">
+              <span class="d">› parsing intent: bullish WMNT, 4h horizon…</span><br/>
+              <span class="d">› pulling on-chain: pool liquidity 3.91M, funding +0.012…</span><br/>
+              <span class="d">› indicators: RSI 58, MACD cross pending…</span><br/>
+              weighing catalyst vs. mean-reversion risk<span class="cur">▋</span>
+            </div>
+            <div class="tribunal">
+              TRIBUNAL <span class="n s">Supporter</span> <span class="n x">Discriminator</span> → <span class="n j">Judge</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <p class="note">Phase 0 proof · <b>trading-desk / terminal</b> · density 7 · mono tabular numerals · model chip + streaming on the run surface · resizable chart presets · zero trapped whitespace</p>
+</div>
+</body>
+</html>

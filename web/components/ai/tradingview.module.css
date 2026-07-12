@@ -1,0 +1,83 @@
+.wrap {
+  margin: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0d1117;
+  transition: height 0.2s ease;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logo svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  border-radius: 4px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+.badge {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--faint);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+}
+
+.live {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: var(--green);
+  background: rgba(63, 224, 166, 0.12);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+}
+
+.expand {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  transition: color 0.1s ease, border-color 0.1s ease;
+}
+.expand:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.frame {
+  width: 100%;
+  height: 420px;
+  border: none;
+  display: block;
+}
+
+.expanded .frame {
+  height: 620px;
+}

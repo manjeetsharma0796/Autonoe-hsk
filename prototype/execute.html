@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonoe · Execute Trade</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ---- page-level extras ---- */
+    .exec-bg {
+      min-height: calc(100vh - 56px - 54px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px 16px;
+    }
+    .exec-stage {
+      width: 100%;
+      max-width: 580px;
+    }
+    .exec-eyebrow {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .exec-eyebrow .eyebrow { margin-bottom: 4px; }
+    .exec-eyebrow h1 { font-size: 22px; margin-bottom: 4px; }
+    .exec-eyebrow p { font-size: 13.5px; margin: 0; color: var(--text-dim); }
+
+    /* wallet method cards */
+    .method-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .method-card {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--bg-inset);
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      position: relative;
+    }
+    .method-card:hover { border-color: var(--accent-dim); background: var(--surface-hover); }
+    .method-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .method-card.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 10px; right: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .method-card .mc-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    .mc-icon.agent { background: var(--accent-soft); }
+    .mc-icon.mm    { background: rgba(245,140,50,.12); }
+    .method-card h3 { font-size: 14px; margin-bottom: 3px; }
+    .method-card p  { font-size: 12px; margin: 0; color: var(--text-dim); }
+
+    /* param summary table */
+    .param-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .param-table td { padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+    .param-table td:first-child { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; width: 120px; }
+    .param-table tr:last-child td { border-bottom: 0; }
+
+    .notice-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--warn-soft);
+      border: 1px solid rgba(245,177,76,.3);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--warn);
+      margin: 16px 0;
+    }
+    .notice-box .ni { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* passphrase field */
+    .passphrase-wrap { position: relative; }
+    .passphrase-wrap input[type="password"],
+    .passphrase-wrap input[type="text"] {
+      padding-right: 44px;
+      font-family: var(--font-mono);
+      letter-spacing: .05em;
+    }
+    .passphrase-toggle {
+      position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      background: transparent; border: 0;
+      color: var(--text-dim); cursor: pointer;
+      font-size: 14px; padding: 4px;
+    }
+    .passphrase-toggle:hover { color: var(--text); }
+
+    /* signing state */
+    .signing-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      gap: 18px;
+    }
+    .signing-ring {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      border: 3px solid var(--border-strong);
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .signing-state h2 { margin: 0; font-size: 20px; }
+    .signing-state p { margin: 0; font-size: 13.5px; color: var(--text-dim); }
+
+    .signing-steps { list-style: none; padding: 0; margin: 0; text-align: left; width: 100%; }
+    .signing-steps li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      color: var(--text-muted);
+      transition: color .2s;
+    }
+    .signing-steps li.done  { color: var(--accent); }
+    .signing-steps li.active { color: var(--text); }
+    .step-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .4; }
+    .step-check { font-size: 15px; color: var(--accent); }
+    .step-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border-strong); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+
+    /* success state */
+    .success-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px 0 8px;
+      gap: 6px;
+    }
+    .success-ring {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 2px solid var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+    .success-state h2 { font-size: 22px; margin: 0; }
+    .success-state .sub { font-size: 13.5px; color: var(--text-dim); margin: 2px 0 0; }
+
+    .tx-receipt {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 18px 0;
+    }
+    .tx-receipt .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .tx-amount {
+      text-align: center;
+    }
+    .tx-amount .label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-dim); margin-bottom: 3px; }
+    .tx-amount .val { font-family: var(--font-mono); font-size: 20px; font-weight: 700; }
+    .tx-arrow {
+      font-size: 18px;
+      color: var(--text-dim);
+    }
+    .onchain-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-dim);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      margin: 8px 0;
+      width: 100%;
+      justify-content: center;
+    }
+    .rail-callout {
+      background: var(--info-soft);
+      border: 1px solid rgba(94,160,255,.25);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--info);
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+    .rail-callout strong { color: var(--text); }
+
+    /* footer actions */
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .modal-actions.centered { justify-content: center; }
+
+    /* progress dots */
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .progress-dots span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      transition: background .2s;
+    }
+    .progress-dots span.active { background: var(--accent); }
+    .progress-dots span.done   { background: var(--accent-dim); }
+
+    /* open-trigger area */
+    .trigger-wrap {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .decision-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .inset-note {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="brand" href="index.html">
+    <span class="logo-dot"></span>
+    Autonoe <small>Agent Arena</small>
+  </a>
+  <a class="nav-link" href="index.html">Arena</a>
+  <a class="nav-link" href="builder.html">Build</a>
+  <a class="nav-link" href="backtest.html">Backtest</a>
+  <a class="nav-link" href="receipt.html">Receipt</a>
+  <a class="nav-link active" href="execute.html">Execute</a>
+  <a class="nav-link" href="history.html">History</a>
+  <a class="nav-link" href="blackbox.html">Black-box</a>
+  <a class="nav-link" href="versions.html">Versions</a>
+  <span class="nav-spacer"></span>
+  <span class="badge badge-real"><span class="dot"></span>Mantle Sepolia</span>
+</nav>
+
+<main class="container">
+
+  <!-- ── Page header ── -->
+  <div class="exec-eyebrow" style="text-align:left; max-width:760px; margin:0 auto 24px;">
+    <div class="eyebrow">Execution Rail</div>
+    <h1>Live Trade Execute</h1>
+    <p style="font-size:14px;">
+      This is the <strong style="color:var(--text);">one real on-chain swap</strong> in the Arena -
+      a spot trade broadcast to Mantle Sepolia that proves the execution rail.
+      All other Arena results are simulated backtests.
+    </p>
+  </div>
+
+  <!-- ── Context panel ── -->
+  <div style="max-width:760px; margin:0 auto 28px;" class="grid grid-2 gap-16">
+
+    <div class="card flat">
+      <div class="card-head">
+        <h3>Signal</h3>
+        <span class="badge badge-live"><span class="dot"></span>Pending exec</span>
+      </div>
+      <table class="param-table" id="signal-table">
+        <tbody>
+          <tr><td>Agent</td><td id="sig-agent">-</td></tr>
+          <tr><td>Pair</td><td id="sig-asset" class="num">-</td></tr>
+          <tr><td>Direction</td><td id="sig-dir">-</td></tr>
+          <tr><td>Entry</td><td id="sig-entry" class="num">-</td></tr>
+          <tr><td>Size</td><td id="sig-size" class="num">-</td></tr>
+          <tr><td>Leverage</td><td id="sig-lev" class="num">-</td></tr>
+          <tr><td>SL / TP</td><td id="sig-sltp" class="num">-</td></tr>
+          <tr><td>Thesis hash</td><td><a id="sig-thesis" class="hash" target="_blank">-</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card flat">
+      <div class="card-head">
+        <h3>Risk gate</h3>
+        <span id="risk-badge" class="badge badge-up"><span class="dot"></span>PASSED</span>
+      </div>
+      <p id="risk-reason" style="font-size:13.5px; color:var(--text-muted); margin-bottom:14px;">-</p>
+      <div class="divider" style="margin:12px 0;"></div>
+      <div class="card-head" style="margin-bottom:6px;">
+        <h3>Chain</h3>
+      </div>
+      <dl class="kv" id="chain-kv">
+        <dt>Network</dt><dd id="kv-chain">-</dd>
+        <dt>DecisionLog</dt><dd><a id="kv-dl" class="hash" target="_blank" style="font-size:12px;">-</a></dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- ── Open modal trigger ── -->
+  <div class="trigger-wrap">
+    <div class="decision-preview" id="decision-pills">
+      <!-- filled by JS -->
+    </div>
+    <button class="btn btn-primary btn-lg" id="open-modal-btn" onclick="openModal()">
+      &#9654;&nbsp; Execute Trade
+    </button>
+    <p class="inset-note" style="margin-top:10px;">
+      Opens the confirmation flow - you review and sign, nothing auto-executes.
+    </p>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     MODAL BACKDROP
+══════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" id="exec-modal" style="max-width:560px;">
+
+    <!-- ── STEP 1: Confirm ── -->
+    <div id="step-1">
+      <div class="modal-head">
+        <h2>Confirm Trade</h2>
+        <button class="close" onclick="closeModal()" title="Cancel">&times;</button>
+      </div>
+
+      <div class="progress-dots">
+        <span class="active" id="dot-1"></span>
+        <span id="dot-2"></span>
+        <span id="dot-3"></span>
+      </div>
+
+      <!-- order summary -->
+      <div class="card inset" style="margin-bottom:14px; padding:14px 16px;">
+        <div class="flex items-center justify-between gap-8" style="margin-bottom:10px;">
+          <div class="flex items-center gap-8">
+            <span id="m-dir-badge" class="badge">LONG</span>
+            <span id="m-asset" class="num" style="font-size:15px; font-weight:700;">MNTUSDT</span>
+          </div>
+          <span id="m-lev-tag" class="tag">3×</span>
+        </div>
+        <div class="grid grid-3 gap-8" style="text-align:center;">
+          <div>
+            <div class="stat-label">Entry</div>
+            <div class="stat-value sm num" id="m-entry">-</div>
+          </div>
+          <div>
+            <div class="stat-label">Stop-loss</div>
+            <div class="stat-value sm num down" id="m-sl">-</div>
+          </div>
+          <div>
+            <div class="stat-label">Take-profit</div>
+            <div class="stat-value sm num up" id="m-tp">-</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid grid-2 gap-8">
+          <div>
+            <div class="stat-label">Notional size</div>
+            <div class="num" style="font-size:14px; font-weight:600;" id="m-size">-</div>
+          </div>
+          <div>
+            <div class="stat-label">Hold (est.)</div>
+            <div class="num" style="font-size:14px; font-weight:600;" id="m-hold">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- funding method -->
+      <div style="font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); margin-bottom:8px;">
+        Funding method
+      </div>
+      <div class="method-cards">
+        <div class="method-card selected" id="card-agent" onclick="selectMethod('agent')">
+          <div class="mc-icon agent">&#129302;</div>
+          <h3>Agent wallet</h3>
+          <p>Pre-funded Mantle Sepolia test wallet - no MetaMask prompt.</p>
+        </div>
+        <div class="method-card" id="card-mm" onclick="selectMethod('mm')">
+          <div class="mc-icon mm">&#129361;</div>
+          <h3>MetaMask</h3>
+          <p>Sign directly from your browser wallet on Mantle Sepolia.</p>
+        </div>
+      </div>
+
+      <!-- passphrase -->
+      <label class="field" style="margin-top:14px; margin-bottom:8px;">
+        <span>Agent passphrase</span>
+        <div class="passphrase-wrap">
+          <input type="password" id="passphrase-input" placeholder="Enter agent signing key…" autocomplete="off">
+          <button class="passphrase-toggle" onclick="togglePass()" id="pass-toggle-btn" title="Show/hide">&#128065;</button>
+        </div>
+      </label>
+      <p style="font-size:12px; color:var(--text-dim); margin:0 0 14px;">
+        The agent never auto-executes. This passphrase authorises a single on-chain transaction -
+        the DecisionLog smart contract records intent and verdict hash before the swap fires.
+      </p>
+
+      <div class="notice-box">
+        <span class="ni">&#9888;</span>
+        <span>
+          <strong>Testnet only.</strong> Mantle Sepolia test tokens have no monetary value.
+          This is a proof-of-execution prototype, not a live trading product.
+        </span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="confirm-btn" onclick="goSign()">
+          Sign &amp; Broadcast &#8594;
+        </button>
+      </div>
+    </div><!-- /step-1 -->
+
+    <!-- ── STEP 2: Signing ── -->
+    <div id="step-2" hidden>
+      <div class="modal-head">
+        <h2>Signing&hellip;</h2>
+        <button class="close" onclick="closeModal()" title="Cancel">&times;</button>
+      </div>
+
+      <div class="progress-dots">
+        <span class="done" id="dot-1b"></span>
+        <span class="active" id="dot-2b"></span>
+        <span id="dot-3b"></span>
+      </div>
+
+      <div class="signing-state">
+        <div class="signing-ring"></div>
+        <h2>Broadcasting to Mantle Sepolia</h2>
+        <p>Waiting for confirmation&hellip;</p>
+      </div>
+
+      <ul class="signing-steps" id="signing-steps-list">
+        <li class="done" id="sstep-1">
+          <div class="step-icon"><span class="step-check">&#10003;</span></div>
+          <span>Passphrase verified &amp; agent key unlocked</span>
+        </li>
+        <li class="active" id="sstep-2">
+          <div class="step-icon"><span class="step-spin"></span></div>
+          <span>Hashing thesis + verdict &rarr; DecisionLog</span>
+        </li>
+        <li id="sstep-3">
+          <div class="step-icon"><span class="step-dot"></span></div>
+          <span>Broadcasting swap tx to Mantle Sepolia RPC</span>
+        </li>
+        <li id="sstep-4">
+          <div class="step-icon"><span class="step-dot"></span></div>
+          <span>Awaiting 1-block confirmation</span>
+        </li>
+      </ul>
+
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Abort</button>
+      </div>
+    </div><!-- /step-2 -->
+
+    <!-- ── STEP 3: Success ── -->
+    <div id="step-3" hidden>
+      <div class="modal-head">
+        <h2>Executed</h2>
+        <button class="close" onclick="closeModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="progress-dots">
+        <span class="done"></span>
+        <span class="done"></span>
+        <span class="active"></span>
+      </div>
+
+      <div class="success-state">
+        <div class="success-ring">&#10003;</div>
+        <h2 class="up">Trade confirmed</h2>
+        <p class="sub" id="success-sub">Block confirmed · Mantle Sepolia</p>
+      </div>
+
+      <!-- tx receipt -->
+      <div class="tx-receipt">
+        <div class="flow">
+          <div class="tx-amount">
+            <div class="label">Sold (USDT)</div>
+            <div class="val num" id="s-sold">-</div>
+          </div>
+          <div class="tx-arrow">&#10230;</div>
+          <div class="tx-amount">
+            <div class="label">Bought (MNT)</div>
+            <div class="val num up" id="s-bought">-</div>
+          </div>
+        </div>
+
+        <a id="s-tx-link" class="onchain-badge" href="#" target="_blank" rel="noopener">
+          &#128279;&nbsp; View on Mantlescan
+          <span class="hash" style="font-size:11.5px; color:var(--info); margin-left:4px;" id="s-tx-hash-short">-</span>
+        </a>
+
+        <dl class="kv" style="margin-top:12px; font-size:12.5px;">
+          <dt>Tx hash</dt>
+          <dd><a id="s-tx-full" class="hash" href="#" target="_blank" style="font-size:11.5px; word-break:break-all;">-</a></dd>
+          <dt>Block</dt>
+          <dd class="num" id="s-block">-</dd>
+          <dt>Gas (test)</dt>
+          <dd class="num" id="s-gas">-</dd>
+          <dt>Verdict hash</dt>
+          <dd><a id="s-verdict" class="hash" href="#" target="_blank" style="font-size:11.5px;">-</a></dd>
+        </dl>
+      </div>
+
+      <div class="onchain-badge" style="background:var(--accent-soft); border-color:var(--accent-dim); cursor:default;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;">
+          <circle cx="7" cy="7" r="6" stroke="var(--accent)" stroke-width="1.5"/>
+          <path d="M4 7.3L6 9.5L10 5" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Logged to DecisionLog on-chain
+      </div>
+
+      <div class="rail-callout">
+        <strong>One real swap, proving the rail.</strong>
+        This spot transaction is the only live on-chain trade in the Arena - it demonstrates the
+        execution pipeline end-to-end. All leaderboard rankings, P&amp;L stats, and agent comparisons
+        are derived from the fixed historical backtest window, not from live trading.
+      </div>
+
+      <div class="modal-actions centered">
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        <a id="s-dl-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener">
+          View DecisionLog contract
+        </a>
+        <a class="btn btn-primary" href="history.html">See it in the on-chain log →</a>
+      </div>
+    </div><!-- /step-3 -->
+
+  </div><!-- /.modal -->
+</div><!-- /.modal-backdrop -->
+
+<!-- ── disclaimer bar ── -->
+<div class="disclaimer-bar">
+  <span class="badge badge-sim"><span class="dot"></span>Testnet</span>
+  <span><strong>Not financial advice.</strong> Mantle Sepolia testnet · all results from a fixed historical backtest · mock prototype.</span>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var M = window.MOCK;
+
+  /* ── pick first passed decision from primary agent ── */
+  var decision = M.decisions.find(function (d) {
+    return d.agentId === M.primaryAgentId && d.riskVeto.passed;
+  }) || M.decisions[0];
+
+  var agent = M.agents.find(function (a) { return a.id === decision.agentId; }) || M.agents[0];
+
+  /* ── Populate page context panel ── */
+  document.getElementById("sig-agent").textContent = agent.name;
+  document.getElementById("sig-asset").textContent = decision.asset;
+
+  var dirEl = document.getElementById("sig-dir");
+  dirEl.textContent = decision.direction;
+  dirEl.className = decision.direction === "LONG" ? "up" : "down";
+
+  document.getElementById("sig-entry").textContent = "$" + decision.entry.toFixed(4);
+  document.getElementById("sig-size").textContent = decision.sizeMUSD.toFixed(1) + " MUSD";
+  document.getElementById("sig-lev").textContent = decision.leverage + "×";
+  document.getElementById("sig-sltp").textContent = "$" + decision.sl.toFixed(4) + " / $" + decision.tp.toFixed(4);
+
+  var thesisEl = document.getElementById("sig-thesis");
+  var thesisUrl = M.explorer(decision.thesisHash);
+  thesisEl.href = thesisUrl;
+  thesisEl.textContent = decision.thesisHash.length > 20 ? decision.thesisHash.substring(0, 14) + "…" : decision.thesisHash;
+
+  /* risk badge */
+  var rbEl = document.getElementById("risk-badge");
+  rbEl.className = "badge " + (decision.riskVeto.passed ? "badge-up" : "badge-down");
+  rbEl.innerHTML = '<span class="dot"></span>' + (decision.riskVeto.passed ? "PASSED" : "VETOED");
+  document.getElementById("risk-reason").textContent = decision.riskVeto.reason;
+
+  /* chain kv */
+  document.getElementById("kv-chain").textContent = M.contracts.chain + " (chain " + M.contracts.chainId + ")";
+  var dlEl = document.getElementById("kv-dl");
+  dlEl.href = M.explorer(M.contracts.DecisionLog);
+  dlEl.textContent = M.contracts.DecisionLog.substring(0, 20) + "…";
+
+  /* decision pills */
+  var pillsEl = document.getElementById("decision-pills");
+  var pills = [
+    agent.name,
+    decision.direction + " " + decision.asset,
+    decision.leverage + "× leverage",
+    decision.sizeMUSD.toFixed(1) + " MUSD",
+    "Bar #" + decision.bar
+  ];
+  pills.forEach(function (txt) {
+    var p = document.createElement("span");
+    p.className = "pill";
+    p.textContent = txt;
+    pillsEl.appendChild(p);
+  });
+
+  /* ── Modal fill ── */
+  function populateModal() {
+    /* direction badge */
+    var mDir = document.getElementById("m-dir-badge");
+    mDir.textContent = decision.direction;
+    mDir.className = "badge " + (decision.direction === "LONG" ? "badge-up" : "badge-down");
+
+    document.getElementById("m-asset").textContent = decision.asset;
+    document.getElementById("m-lev-tag").textContent = decision.leverage + "×";
+    document.getElementById("m-entry").textContent = "$" + decision.entry.toFixed(4);
+    document.getElementById("m-sl").textContent = "$" + decision.sl.toFixed(4);
+    document.getElementById("m-tp").textContent = "$" + decision.tp.toFixed(4);
+    document.getElementById("m-size").textContent = decision.sizeMUSD.toFixed(1) + " MUSD notional";
+    document.getElementById("m-hold").textContent = "~" + decision.holdBars + " bars";
+  }
+
+  /* ── Method selection ── */
+  window.selectMethod = function (method) {
+    document.getElementById("card-agent").classList.toggle("selected", method === "agent");
+    document.getElementById("card-mm").classList.toggle("selected", method === "mm");
+  };
+
+  /* ── Toggle passphrase visibility ── */
+  window.togglePass = function () {
+    var inp = document.getElementById("passphrase-input");
+    inp.type = inp.type === "password" ? "text" : "password";
+  };
+
+  /* ── Open / close modal ── */
+  window.openModal = function () {
+    populateModal();
+    document.getElementById("modal-backdrop").removeAttribute("hidden");
+    document.getElementById("step-1").removeAttribute("hidden");
+    document.getElementById("step-2").setAttribute("hidden", "");
+    document.getElementById("step-3").setAttribute("hidden", "");
+    document.getElementById("passphrase-input").value = "";
+  };
+
+  window.closeModal = function () {
+    document.getElementById("modal-backdrop").setAttribute("hidden", "");
+  };
+
+  /* click outside to close */
+  document.getElementById("modal-backdrop").addEventListener("click", function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── Step 2: Signing animation ── */
+  window.goSign = function () {
+    var pass = document.getElementById("passphrase-input").value.trim();
+    if (!pass) {
+      document.getElementById("passphrase-input").focus();
+      document.getElementById("passphrase-input").style.borderColor = "var(--baseline)";
+      setTimeout(function () {
+        document.getElementById("passphrase-input").style.borderColor = "";
+      }, 1400);
+      return;
+    }
+    document.getElementById("step-1").setAttribute("hidden", "");
+    document.getElementById("step-2").removeAttribute("hidden");
+    runSigningAnimation();
+  };
+
+  function runSigningAnimation() {
+    var steps = [
+      { id: "sstep-2", delay: 0 },
+      { id: "sstep-3", delay: 1100 },
+      { id: "sstep-4", delay: 2100 }
+    ];
+
+    function markDone(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.className = "done";
+      var icon = el.querySelector(".step-icon");
+      if (icon) icon.innerHTML = '<span class="step-check">&#10003;</span>';
+    }
+    function markActive(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.className = "active";
+      var icon = el.querySelector(".step-icon");
+      if (icon) icon.innerHTML = '<span class="step-spin"></span>';
+    }
+
+    setTimeout(function () { markActive("sstep-2"); }, 0);
+    setTimeout(function () { markDone("sstep-2"); markActive("sstep-3"); }, steps[1].delay);
+    setTimeout(function () { markDone("sstep-3"); markActive("sstep-4"); }, steps[2].delay);
+    setTimeout(function () { markDone("sstep-4"); showSuccess(); }, 3200);
+  }
+
+  /* ── Step 3: Success ── */
+  function showSuccess() {
+    document.getElementById("step-2").setAttribute("hidden", "");
+    document.getElementById("step-3").removeAttribute("hidden");
+
+    /* simulate tx amounts from decision */
+    var usdtIn = (decision.sizeMUSD * 1000000).toFixed(0);
+    /* MNT received = USDT / entry price */
+    var mntOut  = (decision.sizeMUSD * 1000000 / decision.entry).toFixed(2);
+    document.getElementById("s-sold").textContent = Number(usdtIn).toLocaleString() + " USDT";
+    document.getElementById("s-bought").textContent = Number(mntOut).toLocaleString() + " MNT";
+
+    /* tx hash - use from decision */
+    var txHash = decision.txHash;
+    var txUrl  = M.explorer(txHash);
+    var txShort = txHash.substring(0, 10) + "…" + txHash.substring(txHash.length - 6);
+
+    document.getElementById("s-tx-link").href = txUrl;
+    document.getElementById("s-tx-hash-short").textContent = txShort;
+    document.getElementById("s-tx-full").href = txUrl;
+    document.getElementById("s-tx-full").textContent = txHash;
+
+    /* mock block + gas */
+    document.getElementById("s-block").textContent = (4217843 + decision.bar).toLocaleString();
+    document.getElementById("s-gas").textContent = "0.000041 MNT";
+
+    /* verdict hash */
+    var verdictUrl = M.explorer(decision.verdictHash);
+    document.getElementById("s-verdict").href = verdictUrl;
+    document.getElementById("s-verdict").textContent = decision.verdictHash;
+
+    /* DecisionLog contract link */
+    document.getElementById("s-dl-link").href = M.explorer(M.contracts.DecisionLog);
+
+    /* sub-text */
+    document.getElementById("success-sub").textContent =
+      "Block #" + (4217843 + decision.bar).toLocaleString() + " · Mantle Sepolia · " + decision.time;
+  }
+
+})();
+</script>
+</body>
+</html>

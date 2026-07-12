@@ -1,0 +1,361 @@
+/* round.module.css - styles for a single tribunal round block.
+   Each re-evaluate appends a new .round; earlier rounds stay fully visible above. */
+
+.round {
+  margin-top: 32px;
+  padding-top: 4px;
+  /* subtle divider between rounds */
+  border-top: 1px solid var(--line2);
+}
+
+/* first round has no top border */
+.round:first-child {
+  border-top: none;
+  margin-top: 20px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+/* 3-column agent grid. minmax(0,1fr) keeps columns EQUAL and lets them shrink
+   below content min-size — without it, long streaming text blows a column wide
+   (then "snaps back" when the other columns fill). */
+.panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pulsing dot for judge "awaiting" status */
+.waitingDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+  flex: 0 0 auto;
+  animation: wdPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes wdPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitingDot {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* ── per-agent message thread (opening, then stacked rebuttals) ── */
+.argText {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+  min-width: 0;
+  /* never let a long token blow the column wide mid-stream */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.msg {
+  min-width: 0;
+  animation: msgRise 0.28s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+/* each turn sits in its own bordered box with an accent left edge */
+.msgBox {
+  min-width: 0;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-left: 2px solid color-mix(in srgb, var(--accent, var(--gold)) 60%, transparent);
+  border-radius: 12px;
+  padding: 11px 13px;
+}
+
+@keyframes msgRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* "↳ replying to <the opponent's point>" — quiet, above the box */
+.replyTo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--faint);
+  margin: 0 0 6px 2px;
+}
+.replyTo svg {
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+/* contested number / term highlighted inline where it's argued */
+.hot {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--gold2);
+  background: rgba(245, 165, 36, 0.12);
+  border: 1px solid rgba(245, 165, 36, 0.22);
+  border-radius: 5px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/* compact verdict line inside the Judge column (prototype parity) */
+.verdictLine {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(245, 165, 36, 0.1);
+  border: 1px solid rgba(245, 165, 36, 0.3);
+  color: var(--gold2);
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: msgRise 0.3s ease;
+}
+
+/* per-panel "Ask the …" composer - sticky footer pinned to the panel bottom
+   (margin-top:auto drops it to the bottom when the chat is short). */
+.ask {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding: 12px 0 2px;
+  border-top: 1px solid var(--line2);
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+}
+.askInput {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink);
+  font-size: 12.5px;
+  padding: 8px 10px;
+  outline: none;
+}
+.askInput:focus {
+  border-color: color-mix(in srgb, var(--accent, var(--gold)) 50%, var(--line));
+}
+.askInput::placeholder {
+  color: var(--faint);
+}
+.askSend {
+  flex: 0 0 auto;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--muted);
+  padding: 0 11px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.askSend:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent, var(--gold)) 50%, var(--line));
+}
+.askSend:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.askUser {
+  align-self: flex-end;
+  max-width: 90%;
+  background: #13233a;
+  border: 1px solid #1d3354;
+  border-radius: 11px;
+  border-top-right-radius: 4px;
+  padding: 8px 11px;
+  color: #dce7f6;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg,
+  .verdictLine {
+    animation: none;
+  }
+}
+
+/* ── pre-run tribunal setup card: per-role models + iteration count ──────────── */
+.setup {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: radial-gradient(120% 100% at 0% 0%, rgba(245, 165, 36, 0.05), transparent 60%),
+    var(--panel);
+  animation: msgRise 0.3s ease;
+}
+.setupHead {
+  margin-bottom: 18px;
+}
+.setupKicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold2);
+}
+.setupTitle {
+  margin-top: 6px;
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.setupRoles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .setupRoles {
+    grid-template-columns: 1fr;
+  }
+}
+.setupRole {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg2);
+}
+.setupRoleHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.setupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.setupRoleName {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.setupIter {
+  margin-top: 20px;
+  max-width: 520px;
+}
+.setupIterLab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.setupIterVal {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold2);
+}
+.setupRange {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  margin: 12px 0 9px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--gold) 0%,
+    var(--gold) var(--pct, 50%),
+    var(--line) var(--pct, 50%),
+    var(--line) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+.setupRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold2);
+  border: 2px solid #1b1305;
+  box-shadow: 0 0 10px rgba(245, 165, 36, 0.5);
+  cursor: pointer;
+}
+.setupRange::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold2);
+  border: 2px solid #1b1305;
+  box-shadow: 0 0 10px rgba(245, 165, 36, 0.5);
+  cursor: pointer;
+}
+.setupRange:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 4px;
+}
+.setupIterHint {
+  font-size: 12px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+.setupActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.setupNote {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup {
+    animation: none;
+  }
+}

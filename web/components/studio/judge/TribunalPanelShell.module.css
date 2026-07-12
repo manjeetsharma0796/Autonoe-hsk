@@ -1,0 +1,66 @@
+/* TribunalPanelShell - presentational state wrapper for a tribunal panel.
+   Adds "speaking glow" / "waiting pulse" without touching inner content. */
+
+.shell {
+  /* --accent is set inline by the component (green / red / gold) */
+  position: relative;
+  border-top: 2px solid var(--accent);
+  border-radius: var(--r-lg);
+  transition:
+    box-shadow var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+/* speaking - colored ring: crisp 1px edge + diffuse 26px glow */
+.speaking {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 26px -4px var(--accent);
+}
+
+/* waiting - dim the panel and reveal the "considering" badge */
+.waiting {
+  opacity: 0.5;
+}
+
+.badge {
+  position: absolute;
+  top: var(--s2);
+  right: var(--s3);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: shell-consider 1.1s ease-in-out infinite;
+}
+
+@keyframes shell-consider {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    transition: none;
+  }
+  /* no infinite animation - keep the badge statically dimmed */
+  .badge {
+    animation: none;
+    opacity: 0.7;
+  }
+}
